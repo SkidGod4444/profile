@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AiActions } from "@/components/ai-actions";
 import { Backdrop } from "@/components/backdrop";
 import { BlogPostingSchema } from "@/components/structured-data";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -80,6 +81,12 @@ export default async function BlogPostPage({ params }: PageProps) {
             >
               {formatPostDate(post.data.date)}
             </time>
+
+            <AiActions
+              rawPath={`${post.url}/raw`}
+              shareUrl={`${siteConfig.url}${post.url}/raw`}
+              title={post.data.title}
+            />
           </header>
 
           {/* Sticks to the top of the viewport while reading. A plain <details>
