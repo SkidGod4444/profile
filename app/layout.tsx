@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -60,6 +61,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: siteConfig.twitterHandle,
+    creator: siteConfig.twitterHandle,
     title: siteTitle,
     description: siteConfig.description,
   },
@@ -124,6 +127,8 @@ export default function RootLayout({
         <ThemeProvider>
           <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
+        {/* No-ops outside Vercel, so local runs stay clean. */}
+        <Analytics />
       </body>
     </html>
   );

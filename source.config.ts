@@ -18,4 +18,25 @@ export const blogPosts = defineCollections({
   }),
 });
 
+/*
+ * Projects are MDX for the same reason posts are: a case study is long-form
+ * prose, which does not belong in a TypeScript config. Frontmatter carries the
+ * facts; the body is optional, so a project with no write-up yet still renders
+ * as a finished page rather than an empty one.
+ */
+export const projectPages = defineCollections({
+  type: "doc",
+  dir: "content/projects",
+  schema: pageSchema.extend({
+    /** Live site or repo. */
+    url: z.string().url(),
+    repo: z.string().optional(),
+    stack: z.array(z.string()).default([]),
+    year: z.string(),
+    /** Lower sorts first on the index. */
+    order: z.number().default(99),
+    draft: z.boolean().default(false),
+  }),
+});
+
 export default defineConfig();

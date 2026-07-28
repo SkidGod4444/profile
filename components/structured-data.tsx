@@ -17,6 +17,7 @@ function JsonLd({ data }: { data: Record<string, unknown> }) {
 
 const personId = `${siteConfig.url}/#person`;
 const websiteId = `${siteConfig.url}/#website`;
+const orgId = `${siteConfig.organization.url}/#organization`;
 
 /**
  * Identity graph for the home page. `@id` lets the other schemas reference this
@@ -36,12 +37,25 @@ export function PersonSchema() {
           image: `${siteConfig.url}${siteConfig.avatar.src}`,
           jobTitle: siteConfig.role,
           description: siteConfig.description,
-          sameAs: siteConfig.sameAs,
+          sameAs: Object.values(siteConfig.profiles),
           knowsAbout: siteConfig.keywords,
+          worksFor: { "@id": orgId },
+          // Declared on both sides: Person→founderOf and Organization→founder.
+          founderOf: { "@id": orgId },
           address: {
             "@type": "PostalAddress",
             addressLocality: siteConfig.location,
           },
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "@id": orgId,
+          name: siteConfig.organization.name,
+          url: siteConfig.organization.url,
+          founder: { "@id": personId },
         }}
       />
       <JsonLd

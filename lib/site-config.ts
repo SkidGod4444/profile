@@ -1,7 +1,8 @@
 /**
- * Everything editable about this site lives here: identity, every URL, the
- * prose, the project list and the footer. Pages read from this file and hold no
- * copy of their own, so changing content never means touching a component.
+ * Everything editable about this site lives here except the long-form content:
+ * identity, every URL, the "Now" prose and the footer. Posts live in
+ * content/writings and projects in content/projects, because a write-up is
+ * prose and does not belong in a TypeScript file.
  *
  * Prose is written as arrays of segments rather than plain strings so sentences
  * can carry inline links without moving the copy back into JSX:
@@ -15,14 +16,23 @@ export type Segment =
   | { text: string; href: string }
   | { stars: true };
 
+/**
+ * Links shown on the page. Social ones go through the owner's own shortener so
+ * clicks stay measurable; the canonical profile URLs live in `profiles` below
+ * and are what the structured data advertises.
+ */
 export const links = {
   site: "https://saidev.codes",
   github: "https://github.com/SkidGod4444",
-  x: "https://l.devwtf.in/x",
-  linkedin: "https://dub.sh/saidev-linkedin",
+  x: "https://ref.saidev.codes/x",
+  linkedin: "https://ref.saidev.codes/linkedin",
   email: "mailto:connect.saidev@gmail.com",
+  /* Verified: cal.com/saidevdhal resolves to Saidev's booking page. */
+  cal: "https://cal.com/saidevdhal",
+  /* Shortener slug, which carries a prefilled first message. */
+  whatsapp: "https://ref.saidev.codes/wp",
   sapient: "https://sapient.openhorizon.so",
-  openHorizon: "https://github.com/openhorizon-labs",
+  openHorizon: "https://openhorizon.so",
   x0gpt: "https://x0-gpt.devwtf.in",
   prexo: "https://prexoai.xyz",
   indexflow: "https://indexflow.site",
@@ -37,7 +47,7 @@ export const siteConfig = {
 
   /** Used for the page title suffix, meta description and OG tags. */
   description:
-    "Software engineer and OSS builder from New Delhi. I build Sapient at Open Horizon Labs and ship open source as SkidGod.",
+    "Software engineer and OSS builder from New Delhi. I founded OpenHorizon Labs, where I build Sapient, and ship open source as SkidGod.",
 
   /*
    * Search engines ignore the keywords meta tag, but LLM crawlers and social
@@ -49,22 +59,36 @@ export const siteConfig = {
     "software engineer",
     "open source",
     "Sapient",
-    "Open Horizon Labs",
+    "OpenHorizon Labs",
     "robotics",
     "machine learning",
   ],
 
   /**
-   * Profiles that belong to the same person, for the `sameAs` property of the
-   * Person schema. Search engines use this to link a site to known profiles, so
-   * every entry must genuinely be the same identity.
+   * Canonical profile URLs for the `sameAs` property of the Person schema.
+   * These must be the real profiles, not the shortener or an intent endpoint —
+   * search engines use them to tie this site to known accounts, and a redirect
+   * or a follow-dialog URL is a weaker signal than the profile itself.
    */
-  sameAs: [links.github, links.x, links.linkedin],
+  profiles: {
+    github: "https://github.com/SkidGod4444",
+    x: "https://x.com/SaidevDhal",
+    linkedin: "https://www.linkedin.com/in/saidevdhal",
+  },
+
+  /** Used for `twitter:creator`; must include the leading @. */
+  twitterHandle: "@SaidevDhal",
 
   avatar: {
     src: "/avatar.jpg",
     /** Shown only if the image fails to load. */
     initials: "SD",
+  },
+
+  /** Founded by the site owner; surfaced in the Person/Organization schema. */
+  organization: {
+    name: "OpenHorizon Labs",
+    url: links.openHorizon,
   },
 
   /** The repo whose live star count `{ stars: true }` renders. */
@@ -80,10 +104,10 @@ export const siteConfig = {
   /** The "Now" section — one array per paragraph. */
   now: [
     [
-      "I build ",
+      "I founded ",
+      { text: "OpenHorizon Labs", href: links.openHorizon },
+      ", where I build ",
       { text: "Sapient", href: links.sapient },
-      " at ",
-      { text: "Open Horizon Labs", href: links.openHorizon },
       ". It makes your hardware think, see, listen and speak, and it is written in Rust.",
     ],
     [
@@ -96,32 +120,6 @@ export const siteConfig = {
       " stars on GitHub. I am always exploring new ideas, particularly in machine learning and robotics.",
     ],
   ] satisfies Segment[][],
-
-  projects: [
-    {
-      name: "Sapient",
-      description: "Make your hardware think, see, listen and speak.",
-      href: links.sapient,
-    },
-    {
-      name: "x0-GPT",
-      description:
-        "Chat with any website or PDF in natural language, free for everyone.",
-      href: links.x0gpt,
-    },
-    {
-      name: "Prexo",
-      description:
-        "AI agents for sales and support, runnable almost entirely for free.",
-      href: links.prexo,
-    },
-    {
-      name: "IndexFlow",
-      description:
-        "Lets Discord communities index their threads and make them searchable.",
-      href: links.indexflow,
-    },
-  ],
 
   /** The closing sentence in the footer. */
   footer: [

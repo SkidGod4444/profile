@@ -6,8 +6,8 @@ writing section over an animated Paper Shaders backdrop.
 Built with Next.js 16 (App Router), React 19, shadcn/ui on Tailwind v4,
 [`@paper-design/shaders`](https://paper.design), and Fumadocs for the writing.
 
-Type is Inter Tight with JetBrains Mono for code, tracking tightened toward
-[farza.com](https://farza.com)'s density (his h1 runs Inter 700 at `-0.042em`).
+Type is Inter Tight with JetBrains Mono for code, with letter-spacing
+tightened across the scale for a denser setting.
 
 ```bash
 bun install
@@ -18,9 +18,10 @@ bun start
 
 ## Editing content
 
-**`lib/site-config.ts` is the only file you need for content.** Name, role,
-avatar, every URL, the "Now" prose, the project list and the footer sentence all
-live there; the pages hold no copy of their own.
+**`lib/site-config.ts`** holds identity, every URL, the "Now" prose and the
+footer. **Long-form content is MDX**: posts in `content/writings/`, projects in
+`content/projects/`. A case study is prose and does not belong in a TypeScript
+file, so the project list is no longer in the config.
 
 Prose that contains inline links is written as arrays of segments so it can stay
 in the config rather than moving back into JSX:
@@ -63,13 +64,37 @@ in the config rather than moving back into JSX:
 
 ## Palette
 
-A warm neutral (Tailwind's stone family), sampled from
-[autosend.com](https://autosend.com): `#fafaf9` paper on `#292524` ink, with the
-dark theme built from the same family's dark end (`#0c0a09` / `#fafaf9`) so the
-two read as one design.
+A warm neutral (Tailwind's stone family): `#fafaf9` paper on `#292524` ink,
+with the dark theme built from the same family's dark end (`#0c0a09` /
+`#fafaf9`) so the two read as one design.
 
 `--paper` is duplicated once outside the stylesheet, in `lib/theme.ts`, because
 `<meta name="theme-color">` has to be set from JS. Keep the two in step.
+
+## Projects
+
+One MDX file per project in `content/projects/`, rendered at `/projects/[slug]`:
+
+```yaml
+---
+title: Sapient
+description: One line, shown in every listing.
+url: https://sapient.openhorizon.so
+repo: https://github.com/SkidGod4444/sapient # optional
+stack: [Rust]
+year: "2026"
+order: 1 # lower sorts first
+draft: false
+---
+```
+
+**The body is optional and currently empty on all four.** Frontmatter alone
+renders a complete page — title, lede and a facts table of year, stack, live
+link and source — so a project without a write-up still looks finished. The
+case studies are yours to write; nothing here invents one.
+
+Home and `/projects` rows link to the project's own page, not straight out to
+the live site; the outbound link lives on the page.
 
 ## Writing
 
@@ -119,19 +144,36 @@ blue-grey surface clashes with the warm paper. The surface comes from
   title. `robots.googleBot['max-image-preview'] = 'large'` is what lets Google
   show the full card instead of a thumbnail.
 
+Traffic is measured with `@vercel/analytics`, mounted once in the root layout.
+It no-ops off Vercel, so local runs and other hosts stay clean.
+
 `siteConfig.sameAs` currently points at link shorteners for X and LinkedIn.
 Search engines follow them, but canonical profile URLs are stronger signals —
 worth replacing when convenient.
 
-## Shader lab
+## Labs
 
-`/shader-lab` renders every Paper shader candidate in the site's own ink and
-paper so a background can be picked by eye. Tiles mount their WebGL context only
-while near the viewport, because browsers cap live contexts at around sixteen and
-the grid has more tiles than that.
+Working tools, indexed at `/lab`. All are `noindex`, listed in `robots.ts`
+`disallow`, and linked from nowhere on the public site.
 
-It is `noindex` and linked from nowhere. Delete `app/shader-lab/` and
-`components/shader-lab*.tsx` when you no longer want it.
+- `/design-lab` — every palette token as a swatch over a checkerboard (so
+  translucent ones read honestly), the type scale, a prose specimen and every
+  button variant. This is how you catch a token that only misbehaves in one
+  theme, or a warm grey that turns brown at full fill.
+- `/shader-lab` — every Paper shader candidate in the site's own ink and paper.
+  Tiles mount their WebGL context only while near the viewport, because browsers
+  cap live contexts at around sixteen and the grid has more tiles than that.
+
+When adding a lab route, add it to the `disallow` list in `app/robots.ts` too.
+
+## Grid
+
+`.profile__shell` draws a vertical hairline at each column edge via
+`::before`/`::after`, so every horizontal border on the page terminates on the
+same two lines. They are pseudo-elements of the column rather than a fixed
+overlay, which means they inherit its exact width — alignment holds without any
+measurement being repeated. `--grid-line` is set per theme; a hairline tuned for
+the dark paper is invisible on the light one.
 
 ## Notes
 
@@ -161,8 +203,3 @@ It is `noindex` and linked from nowhere. Delete `app/shader-lab/` and
   standalone `toFumadocsSource(pages, metas)`. The `.toFumadocsSource()` method
   in the install guide only exists on the `defineDocs` wrapper.
 - ESLint ignores `.source/`; the generated files carry their own `@ts-nocheck`.
-
-Design reference: [enesgules.com](https://enesgules.com)
-([source](https://github.com/enesgules/website)), which drives a custom
-multi-variant fragment shader from project hover. This site uses a stock shader
-in a single resting state instead.

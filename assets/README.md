@@ -22,4 +22,5 @@ the cards will keep showing the old shader.
 
 To regenerate: run the site, open it at 1200×630, hide `.profile__shell` and
 `.theme-toggle`, raise `.backdrop` opacity to ~0.55 so the texture reads at card
-scale, and screenshot.
+scale, and screenshot. `/shader-lab` is the quickest way to preview a
+replacement before switching `activeShader`.

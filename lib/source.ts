@@ -1,4 +1,4 @@
-import { blogPosts } from "collections/server";
+import { blogPosts, projectPages } from "collections/server";
 import { loader } from "fumadocs-core/source";
 import { toFumadocsSource } from "fumadocs-mdx/runtime/server";
 
@@ -39,4 +39,24 @@ const dateFormatter = new Intl.DateTimeFormat("en-GB", {
 
 export function formatPostDate(date: string | Date) {
   return dateFormatter.format(new Date(date));
+}
+
+/* ----------------------------------------------------------------- projects */
+
+export const projects = loader({
+  baseUrl: "/projects",
+  source: toFumadocsSource(projectPages, []),
+});
+
+export type ProjectPage = ReturnType<typeof projects.getPages>[number];
+
+/**
+ * Published projects in deliberate order — `order` from frontmatter rather than
+ * a date, since a project's significance is not its recency.
+ */
+export function getPublishedProjects() {
+  return projects
+    .getPages()
+    .filter((page) => !page.data.draft)
+    .sort((a, b) => a.data.order - b.data.order);
 }

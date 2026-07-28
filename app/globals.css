@@ -36,6 +36,15 @@
   --backdrop-opacity: 0.30;
   /* Code surface, derived from the palette rather than Shiki's theme bg. */
   --code-surface: rgb(var(--ink-rgb) / 4%);
+  --grid-line: rgb(var(--ink-rgb) / 9%);
+
+  /*
+   * Frosted surfaces. The tint is what makes the blur read — `transparent`
+   * plus backdrop-filter looks like nothing at all, because there is no fill
+   * for the blurred backdrop to show through.
+   */
+  --glass-surface: rgb(var(--paper-rgb) / 66%);
+  --glass-surface-hover: rgb(var(--paper-rgb) / 82%);
 
   /*
    * Selection and scrollbars, written against --ink so one definition serves
@@ -112,6 +121,9 @@
   --control-shadow: 0 0 0 1px rgb(255 255 255 / 9%);
   --backdrop-opacity: 0.26;
   --code-surface: rgb(var(--ink-rgb) / 6%);
+  --grid-line: rgb(var(--ink-rgb) / 13%);
+  --glass-surface: rgb(var(--paper-rgb) / 58%);
+  --glass-surface-hover: rgb(var(--paper-rgb) / 76%);
   --destructive: oklch(0.704 0.191 22.216);
   color-scheme: dark;
 }
@@ -162,6 +174,19 @@
 
 html {
   background: var(--paper);
+  scroll-behavior: smooth;
+  /*
+   * Anchor targets stop below the sticky contents panel instead of underneath
+   * it: its height plus its 0.75rem offset, with a little air.
+   */
+  scroll-padding-top: 4.5rem;
+}
+
+/* Never animate scrolling for people who have asked the OS not to. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
@@ -264,15 +289,51 @@ html {
   isolation: isolate;
 }
 
+/*
+ * Vertical rules marking the column edges, so every horizontal border in the
+ * page visibly terminates on the same two lines. Drawn as pseudo-elements of
+ * the shell itself rather than a fixed overlay: they inherit the column's
+ * exact width, so alignment holds without repeating any measurement.
+ */
+.profile__shell::before,
+.profile__shell::after {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--grid-line);
+  content: "";
+  pointer-events: none;
+}
+
+.profile__shell::before {
+  left: 0;
+}
+
+.profile__shell::after {
+  right: 0;
+}
+
 .profile__shell {
+  /*
+   * The gutter is the space between the grid rules and the text. The column
+   * grows by it on both sides so the reading measure stays ~42rem rather than
+   * being eaten by the new padding.
+   */
+  --gutter: clamp(1.25rem, 4vw, 2.75rem);
+
   position: relative;
   z-index: 2;
-  width: min(100%, 42rem);
+  /* Fills the viewport so the vertical rules reach the bottom on short pages
+     like /projects, instead of stopping where the content happens to end. */
+  min-height: 100svh;
+  width: min(100%, calc(42rem + var(--gutter) * 2));
   margin: 0 auto;
   padding-block: clamp(4rem, 11vw, 7.5rem)
     calc(4rem + env(safe-area-inset-bottom));
-  padding-inline: max(1rem, env(safe-area-inset-left))
-    max(1rem, env(safe-area-inset-right));
+  padding-inline: max(var(--gutter), env(safe-area-inset-left))
+    max(var(--gutter), env(safe-area-inset-right));
 }
 
 .profile__header h1,
@@ -283,9 +344,53 @@ html {
 }
 
 .profile__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.profile__who {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.profile__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Frosted like the theme toggle, so the two call-to-actions read as the same
+   family of controls rather than as buttons pasted on top. */
+.profile__action {
+  height: 2.25rem;
+  padding-inline: 0.85rem;
+  border-color: var(--ink-faint);
+  border-radius: 0.6rem;
+  background: var(--glass-surface);
+  backdrop-filter: blur(16px) saturate(150%);
+  color: var(--ink);
+  font-size: 0.875rem;
+  letter-spacing: -0.012em;
+}
+
+.profile__action:hover {
+  background: var(--glass-surface-hover);
+  color: var(--ink);
+}
+
+@media (max-width: 700px) {
+  .profile__actions {
+    width: 100%;
+  }
+
+  .profile__action {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
 }
 
 .profile__identity {
@@ -329,12 +434,19 @@ html {
   line-height: 1.4;
 }
 
+/*
+ * Each section label sits in a banded row: a rule above and below, both running
+ * the full width of the column so they terminate on the vertical grid lines.
+ */
 .profile-section {
-  margin-top: clamp(5rem, 13vw, 7.25rem);
+  margin-top: clamp(1.75rem, 4vw, 2.75rem);
 }
 
-.profile-section h2 {
-  margin-bottom: 1.55rem;
+.profile-section > h2 {
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 0.65rem var(--gutter);
+  border-top: 1px solid var(--grid-line);
+  border-bottom: 1px solid var(--grid-line);
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.028em;
@@ -343,6 +455,7 @@ html {
 
 .profile-section__body {
   display: grid;
+  margin-top: 1.55rem;
   gap: 1rem;
 }
 
@@ -373,15 +486,26 @@ html {
 
 /* -------------------------------------------------------------- projects */
 
+/*
+ * Horizontal rules run the full width of the column so they terminate on the
+ * vertical lines, while the text inside them keeps the gutter. Without the
+ * negative margin the rules would stop short and the grid would stop reading
+ * as one.
+ */
 .project-list {
+  margin-inline: calc(var(--gutter) * -1);
   border-top: 1px solid var(--ink-faint);
+}
+
+.profile-section > h2 + .project-list {
+  border-top: 0;
 }
 
 .project-entry {
   position: relative;
   display: grid;
   min-height: 8.5rem;
-  padding: 1.35rem 0;
+  padding: 1.35rem var(--gutter);
   border-bottom: 1px solid var(--ink-faint);
   grid-template-columns: minmax(10.5rem, 0.82fr) 1.45fr;
   align-items: center;
@@ -466,59 +590,163 @@ html {
 /* -------------------------------------------------------- table of contents */
 
 /*
- * Mobile only. On a wide screen the article is already a single short column,
- * so a contents list there is noise rather than navigation.
+ * Pinned to the top of the viewport for the length of the article, and a native
+ * <details> so collapsing costs no JavaScript and works before hydration.
  */
 .post-toc {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 2;
+  margin-bottom: clamp(2rem, 5vw, 2.75rem);
+}
+
+/*
+ * Frosted rather than solid: a tint carries the surface, the blur keeps the
+ * article legible as it scrolls underneath. Browsers without backdrop-filter
+ * still get the tint, so it degrades to translucent instead of to nothing.
+ */
+.post-toc__panel {
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.6rem;
+  background: var(--glass-surface);
+  backdrop-filter: blur(16px) saturate(150%);
+}
+
+.post-toc__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem;
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  list-style: none;
+}
+
+/* Both are needed to drop the native disclosure triangle across browsers. */
+.post-toc__summary::-webkit-details-marker {
   display: none;
 }
 
+.post-toc__label {
+  margin-right: auto;
+}
+
+.post-toc__count {
+  color: var(--ink-muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Direction alone signals state — no motion, in keeping with the rest. */
+.post-toc__summary::after {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-right: 1.5px solid var(--ink-muted);
+  border-bottom: 1.5px solid var(--ink-muted);
+  content: "";
+  transform: translateY(-0.12em) rotate(45deg);
+}
+
+.post-toc__panel[open] .post-toc__summary::after {
+  transform: translateY(0.06em) rotate(-135deg);
+}
+
+.post-toc__list {
+  /* Bounded so a long contents list cannot fill the screen while pinned. */
+  max-height: min(50vh, 22rem);
+  margin: 0;
+  padding: 0.75rem 1rem 0.9rem;
+  overflow-y: auto;
+  border-top: 1px solid var(--ink-faint);
+  list-style: none;
+}
+
+.post-toc__item {
+  margin-block: 0.32rem;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.post-toc__item[data-depth="3"] {
+  padding-left: 0.85rem;
+}
+
+.post-toc__item[data-depth="4"] {
+  padding-left: 1.7rem;
+}
+
+.post-toc__item a {
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.post-toc__item a:hover {
+  color: var(--ink);
+}
+
 @media (max-width: 700px) {
-  .post-toc {
-    display: block;
-    margin-bottom: 2.5rem;
-    padding: 1rem 1.1rem;
-    border: 1px solid var(--ink-faint);
-    border-radius: 0.6rem;
-    background: rgb(var(--paper-rgb) / 62%);
+  /* Keep the label and chevron clear of the fixed theme toggle. */
+  .post-toc__summary {
+    padding-right: 3.5rem;
   }
+}
 
-  .post-toc__heading {
-    margin: 0 0 0.65rem;
-    color: var(--ink);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
+/* --------------------------------------------------------------- projects */
 
-  .post-toc__list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
+.post__lede {
+  margin: 0 0 1.6rem;
+  color: var(--ink-muted);
+  font-size: 1.0625rem;
+  letter-spacing: -0.018em;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
 
-  .post-toc__item {
-    margin-block: 0.32rem;
-    font-size: 0.9375rem;
-    line-height: 1.4;
-  }
+.project-facts {
+  margin: 0 calc(var(--gutter) * -1);
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--ink-faint);
+  font-size: 0.9375rem;
+}
 
-  .post-toc__item[data-depth="3"] {
-    padding-left: 0.85rem;
-  }
+.project-facts__row {
+  padding-inline: var(--gutter);
+}
 
-  .post-toc__item[data-depth="4"] {
-    padding-left: 1.7rem;
-  }
+.project-facts__row {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 1rem;
+  padding-block: 0.42rem;
+}
 
-  .post-toc__item a {
-    color: var(--ink-muted);
-    text-decoration: none;
-  }
+.project-facts dt {
+  color: var(--ink-muted);
+}
 
-  .post-toc__item a:hover {
-    color: var(--ink);
+.project-facts dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.project-facts a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--ink-faint);
+  text-underline-offset: 0.18em;
+}
+
+.project-facts a:hover {
+  text-decoration-color: var(--ink);
+}
+
+@media (max-width: 700px) {
+  .project-facts__row {
+    grid-template-columns: 5.5rem 1fr;
+    gap: 0.75rem;
   }
 }
 
@@ -669,6 +897,15 @@ html {
   color: var(--ink);
   font-family: var(--font-mono);
   font-size: 0.875em;
+  /*
+   * Without this, a badge that wraps has its border and padding drawn once
+   * around the whole run, so the box splits open across the line break. `clone`
+   * draws a complete badge on each line instead. Long tokens still break rather
+   * than overflowing the column.
+   */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  overflow-wrap: break-word;
 }
 
 .prose pre {
@@ -732,7 +969,7 @@ html {
 /* ---------------------------------------------------------------- footer */
 
 .profile-footer {
-  margin-top: clamp(5.5rem, 13vw, 7.25rem);
+  margin-top: clamp(2.25rem, 5vw, 3.25rem);
   padding-bottom: 2rem;
 }
 
@@ -751,13 +988,14 @@ html {
   height: 2.5rem;
   border: 0;
   border-radius: 0.75rem;
-  background: var(--control-surface);
+  background: var(--glass-surface);
+  backdrop-filter: blur(16px) saturate(150%);
   box-shadow: var(--control-shadow);
   color: var(--control-ink);
 }
 
 .theme-toggle:hover {
-  background: var(--control-surface-hover);
+  background: var(--glass-surface-hover);
   color: var(--control-ink-hover);
 }
 
@@ -825,6 +1063,108 @@ html {
   background-position: center;
   background-size: 6px 6px;
   opacity: 0.42;
+}
+
+/* --------------------------------------------------------------- lab pages */
+
+.lab {
+  position: relative;
+  min-height: 100svh;
+  background: var(--paper);
+}
+
+.lab__shell {
+  width: min(100%, 52rem);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 4.5rem) 1.25rem 5rem;
+}
+
+.lab__header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.028em;
+}
+
+.lab__header p {
+  max-width: 40rem;
+  margin: 0;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+.lab__section {
+  margin-top: clamp(2.5rem, 6vw, 3.5rem);
+}
+
+.lab__section > h2 {
+  margin: 0 0 1.25rem;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lab__stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.lab__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.swatches {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+.swatch {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.5rem;
+}
+
+/* Checkerboard shows through translucent tokens, which is the whole point of
+   listing selection and border colours here. */
+.swatch__chip {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: none;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.35rem;
+  background-image:
+    linear-gradient(45deg, rgb(var(--ink-rgb) / 12%) 25%, transparent 25%),
+    linear-gradient(-45deg, rgb(var(--ink-rgb) / 12%) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgb(var(--ink-rgb) / 12%) 75%),
+    linear-gradient(-45deg, transparent 75%, rgb(var(--ink-rgb) / 12%) 75%);
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+  background-size: 8px 8px;
+}
+
+.swatch__meta {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.swatch__meta code {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+.swatch__note {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
 }
 
 /* ------------------------------------------------------- shader lab (temp) */
@@ -940,7 +1280,8 @@ html {
   padding: 0.45rem 0.9rem;
   border: 1px solid var(--ink-faint);
   border-radius: 0.5rem;
-  background: var(--control-surface);
+  background: var(--glass-surface);
+  backdrop-filter: blur(16px) saturate(150%);
   color: var(--ink);
   font-family: inherit;
   font-size: 0.875rem;
@@ -972,7 +1313,7 @@ html {
   }
 
   .profile-section {
-    margin-top: 5.25rem;
+    margin-top: 2rem;
   }
 
   .project-entry {
@@ -984,7 +1325,6 @@ html {
 
   .project-entry__description {
     grid-column: 1 / -1;
-    padding-right: 1rem;
   }
 
   .backdrop {

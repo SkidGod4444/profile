@@ -7,8 +7,8 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // A local tool page with no content worth indexing.
-        disallow: ["/shader-lab"],
+        // Working tools, not content. Keep this in step with app/lab/page.tsx.
+        disallow: ["/lab", "/design-lab", "/shader-lab"],
       },
     ],
     sitemap: `${siteConfig.url}/sitemap.xml`,

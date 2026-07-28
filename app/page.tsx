@@ -1,11 +1,17 @@
+import { CalendarDays, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { Backdrop } from "@/components/backdrop";
 import { PersonSchema } from "@/components/structured-data";
 import { Segments } from "@/components/segments";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { siteConfig } from "@/lib/site-config";
-import { formatPostDate, getPublishedPosts } from "@/lib/source";
+import { Button } from "@/components/ui/button";
+import { links, siteConfig } from "@/lib/site-config";
+import {
+  formatPostDate,
+  getPublishedPosts,
+  getPublishedProjects,
+} from "@/lib/source";
 
 const compactNumberFormatter = new Intl.NumberFormat("en", {
   maximumFractionDigits: 0,
@@ -49,6 +55,7 @@ export default async function Page() {
   const starCount = await fetchStarCount();
   const posts = getPublishedPosts();
   const recentPosts = posts.slice(0, siteConfig.writingsOnHome);
+  const projects = getPublishedProjects();
   const formattedStars = compactNumberFormatter.format(starCount);
 
   return (
@@ -59,14 +66,31 @@ export default async function Page() {
 
       <div className="profile__shell">
         <header className="profile__header">
-          <div className="profile__identity">
-            <h1 id="page-title">{siteConfig.name}</h1>
-            <p>{siteConfig.role}</p>
+          <div className="profile__who">
+            <Avatar className="profile__avatar">
+              <AvatarImage src={siteConfig.avatar.src} alt="" />
+              <AvatarFallback>{siteConfig.avatar.initials}</AvatarFallback>
+            </Avatar>
+            <div className="profile__identity">
+              <h1 id="page-title">{siteConfig.name}</h1>
+              <p>{siteConfig.role}</p>
+            </div>
           </div>
-          <Avatar className="profile__avatar">
-            <AvatarImage src={siteConfig.avatar.src} alt="" />
-            <AvatarFallback>{siteConfig.avatar.initials}</AvatarFallback>
-          </Avatar>
+
+          <div className="profile__actions">
+            <Button className="profile__action" variant="outline" asChild>
+              <a href={links.cal} target="_blank" rel="noreferrer">
+                <CalendarDays aria-hidden="true" />
+                Schedule a meet
+              </a>
+            </Button>
+            <Button className="profile__action" variant="outline" asChild>
+              <a href={links.whatsapp} target="_blank" rel="noreferrer">
+                <MessageCircle aria-hidden="true" />
+                Let&rsquo;s chat
+              </a>
+            </Button>
+          </div>
         </header>
 
         <section className="profile-section" aria-labelledby="now-title">
@@ -116,22 +140,27 @@ export default async function Page() {
         <section className="profile-section" aria-labelledby="projects-title">
           <h2 id="projects-title">Projects</h2>
 
+          {/* Rows go to the project's own page; the live site is linked
+              there, alongside the write-up. */}
           <div className="project-list">
-            {siteConfig.projects.map((project) => (
-              <a
+            {projects.map((project) => (
+              <Link
                 className="project-entry"
-                href={project.href}
-                key={project.href}
-                target="_blank"
-                rel="noreferrer"
+                href={project.url}
+                key={project.url}
               >
                 <span className="project-entry__title">
-                  <span className="project-entry__name">{project.name}</span>
+                  <span className="project-entry__name">
+                    {project.data.title}
+                  </span>
+                  <span className="project-entry__meta">
+                    {project.data.year}
+                  </span>
                 </span>
                 <span className="project-entry__description">
-                  {project.description}
+                  {project.data.description}
                 </span>
-              </a>
+              </Link>
             ))}
           </div>
         </section>

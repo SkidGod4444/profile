@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site-config";
-import { getPublishedPosts } from "@/lib/source";
+import { getPublishedPosts, getPublishedProjects } from "@/lib/source";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const posts = getPublishedPosts();
+  const projects = getPublishedProjects();
 
   // The index is only as fresh as its newest post.
   const latestPostDate = posts[0]
@@ -23,6 +24,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    {
+      url: `${siteConfig.url}/projects`,
+      lastModified: latestPostDate,
+      changeFrequency: "monthly" as const,
+      priority: 0.9,
+    },
+    ...projects.map((project) => ({
+      url: `${siteConfig.url}${project.url}`,
+      lastModified: latestPostDate,
+      changeFrequency: "yearly" as const,
+      priority: 0.7,
+    })),
     ...posts.map((post) => ({
       url: `${siteConfig.url}${post.url}`,
       lastModified: new Date(post.data.date),
