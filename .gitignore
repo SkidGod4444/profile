@@ -42,3 +42,6 @@ next-env.d.ts
 
 # fumadocs-mdx codegen
 /.source/
+
+# scraped reference material, not part of the site
+/.firecrawl/
