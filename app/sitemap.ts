@@ -1,0 +1,33 @@
+import type { MetadataRoute } from "next";
+import { siteConfig } from "@/lib/site-config";
+import { getPublishedPosts } from "@/lib/source";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const posts = getPublishedPosts();
+
+  // The index is only as fresh as its newest post.
+  const latestPostDate = posts[0]
+    ? new Date(posts[0].data.date)
+    : new Date("2026-07-28");
+
+  return [
+    {
+      url: siteConfig.url,
+      lastModified: latestPostDate,
+      changeFrequency: "monthly",
+      priority: 1,
+    },
+    {
+      url: `${siteConfig.url}/writings`,
+      lastModified: latestPostDate,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...posts.map((post) => ({
+      url: `${siteConfig.url}${post.url}`,
+      lastModified: new Date(post.data.date),
+      changeFrequency: "yearly" as const,
+      priority: 0.7,
+    })),
+  ];
+}

@@ -1,0 +1,71 @@
+---
+title: Formatting reference
+description: Every element the blog styles, on one page. Delete this once you have written a real post.
+date: 2026-07-28
+---
+
+This post exists to exercise the styles, not to say anything. It is a
+placeholder — replace or delete it.
+
+## Headings and text
+
+Body copy sits at a comfortable measure for long-form reading. It supports
+**bold**, _italic_, `inline code`, and [links](https://saidev.codes).
+
+### A third-level heading
+
+Lists come in both kinds:
+
+- An unordered item
+- Another one, long enough to wrap so you can see how the line spacing holds up
+  across more than a single line of text
+- A third
+
+1. First step
+2. Second step
+3. Third step
+
+## Code
+
+Syntax highlighting comes from Shiki, wired to the site's light and dark themes:
+
+```ts title="dither-shader.tsx"
+const ditherPreset = {
+  shape: "simplex",
+  size: 1.65,
+  speed: 0.46,
+} as const;
+
+export function preset(scale: number) {
+  return { ...ditherPreset, scale };
+}
+```
+
+```python
+def fibonacci(n: int) -> int:
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+```
+
+```bash
+bun install
+bun dev
+```
+
+## Quotes and rules
+
+> A blockquote, for when something is worth setting apart from the body text.
+
+---
+
+## Tables
+
+| Package                  | Role                       |
+| ------------------------ | -------------------------- |
+| `fumadocs-mdx`           | Compiles MDX, validates frontmatter |
+| `fumadocs-core`          | Page loader and Shiki      |
+| `@paper-design/shaders`  | The dither backdrop        |
+
+That is everything the stylesheet covers.

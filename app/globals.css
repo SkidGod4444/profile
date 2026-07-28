@@ -1,0 +1,1001 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+ * shadcn/ui ships a class-based dark variant (`.dark`). This site drives
+ * theming from `data-theme` on <html> so an inline script can set it before
+ * first paint; pointing the variant at the same attribute keeps shadcn
+ * components and the hand-written CSS on one switch.
+ */
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+:root {
+  /*
+   * Site palette (light). Warm neutral — stone-50 paper on stone-800 ink,
+   * sampled from autosend.com rather than guessed.
+   */
+  --paper-rgb: 250 250 249;
+  --ink-rgb: 41 37 36;
+  --paper: rgb(var(--paper-rgb));
+  --ink: rgb(var(--ink-rgb));
+  --ink-muted: rgb(var(--ink-rgb) / 59%);
+  --ink-faint: rgb(var(--ink-rgb) / 12%);
+  --image-outline: rgb(0 0 0 / 10%);
+  --avatar-shadow:
+    0 1px 2px rgb(0 0 0 / 6%),
+    0 4px 12px rgb(0 0 0 / 8%);
+  --control-surface: #fff;
+  --control-surface-hover: #f5f5f4;
+  --control-ink: #57534e;
+  --control-ink-hover: #292524;
+  --control-shadow:
+    0 0 0 1px rgb(0 0 0 / 6%),
+    0 1px 2px rgb(0 0 0 / 7%),
+    0 6px 18px rgb(0 0 0 / 8%);
+  --backdrop-opacity: 0.30;
+  /* Code surface, derived from the palette rather than Shiki's theme bg. */
+  --code-surface: rgb(var(--ink-rgb) / 4%);
+
+  /*
+   * Selection and scrollbars, written against --ink so one definition serves
+   * both themes.
+   *
+   * These are background-only on purpose. A selection that also sets `color`
+   * repaints every token in a code block one flat colour, because `::selection`
+   * inherits from the *parent's* selection rather than from the element's own
+   * text colour — so `color: inherit` there resolves to the selection ink, not
+   * the syntax colour. Tinting only keeps highlighting intact everywhere.
+   */
+  --selection-surface: rgb(var(--ink-rgb) / 18%);
+  --selection-code-surface: rgb(var(--ink-rgb) / 26%);
+  --scrollbar-thumb: rgb(var(--ink-rgb) / 20%);
+  --scrollbar-thumb-hover: rgb(var(--ink-rgb) / 36%);
+
+  /* Loaded by next/font in the root layout, with a system grotesk as the
+     fallback so the layout does not shift while the webfont swaps in. */
+  --font-sans: var(--font-inter-tight), "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular,
+    monospace;
+
+  /*
+   * shadcn design tokens, mapped onto the palette above instead of the
+   * default neutral oklch ramp. Because they reference --paper/--ink, they
+   * follow [data-theme] automatically and need no dark-mode duplicates.
+   */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--control-surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: var(--control-surface-hover);
+  --secondary-foreground: var(--ink);
+  --muted: var(--control-surface-hover);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--control-surface-hover);
+  --accent-foreground: var(--control-ink-hover);
+  --border: var(--ink-faint);
+  --input: var(--ink-faint);
+  --ring: var(--ink);
+  --destructive: oklch(0.577 0.245 27.325);
+  --radius: 0.625rem;
+
+  color: var(--ink);
+  background: var(--paper);
+  color-scheme: light;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme="dark"] {
+  /* Site palette (dark). The same warm family at its dark end, so the two
+     themes read as one design rather than two. */
+  --paper-rgb: 12 10 9;
+  --ink-rgb: 250 250 249;
+  --ink-muted: rgb(var(--ink-rgb) / 68%);
+  --ink-faint: rgb(var(--ink-rgb) / 15%);
+  --image-outline: rgb(255 255 255 / 10%);
+  --avatar-shadow:
+    0 1px 2px rgb(0 0 0 / 40%),
+    0 6px 18px rgb(0 0 0 / 46%);
+  --control-surface: #1c1917;
+  --control-surface-hover: #292524;
+  --control-ink: #a8a29e;
+  --control-ink-hover: #fafaf9;
+  --control-shadow: 0 0 0 1px rgb(255 255 255 / 9%);
+  --backdrop-opacity: 0.26;
+  --code-surface: rgb(var(--ink-rgb) / 6%);
+  --destructive: oklch(0.704 0.191 22.216);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: clip;
+}
+
+a {
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tailwind's preflight resets buttons to `cursor: default`, so anything
+   clickable gets the pointer back explicitly. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+label[for],
+summary,
+select,
+[type="button"]:not(:disabled),
+[type="submit"]:not(:disabled),
+[type="reset"]:not(:disabled) {
+  cursor: pointer;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+canvas {
+  display: block;
+}
+
+/* ---------------------------------------------- selection & browser chrome */
+
+::selection {
+  background: var(--selection-surface);
+}
+
+/* Code already sits on a tinted surface, so its selection needs to be a step
+   stronger to register against it. */
+.prose pre ::selection,
+.prose pre::selection,
+.prose code ::selection,
+.prose code::selection {
+  background: var(--selection-code-surface);
+}
+
+/* Highlight for `#:~:text=` fragment links, matched to code selection. */
+::target-text {
+  background: var(--selection-code-surface);
+}
+
+html {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-width: thin;
+}
+
+/* Older WebKit ignores scrollbar-color; these also style the horizontal bars
+   inside code blocks and tables. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Only relevant if a form ever lands here, but cheap to keep consistent. */
+:root {
+  caret-color: var(--ink);
+  accent-color: var(--ink);
+}
+
+/* ---------------------------------------------------------------- layout */
+
+.profile {
+  position: relative;
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--paper);
+  isolation: isolate;
+}
+
+.profile__shell {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 42rem);
+  margin: 0 auto;
+  padding-block: clamp(4rem, 11vw, 7.5rem)
+    calc(4rem + env(safe-area-inset-bottom));
+  padding-inline: max(1rem, env(safe-area-inset-left))
+    max(1rem, env(safe-area-inset-right));
+}
+
+.profile__header h1,
+.profile__header p,
+.profile-section h2,
+.profile-section p {
+  margin: 0;
+}
+
+.profile__header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile__identity {
+  display: grid;
+}
+
+/* shadcn's Avatar is a circle by default; this design wants a rounded square,
+   so the root, the image and its ring pseudo-element all get squared off. */
+.profile__avatar,
+.profile__avatar img,
+.profile__avatar::after,
+.profile__avatar [data-slot="avatar-fallback"] {
+  border-radius: 0.55rem;
+}
+
+.profile__avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  box-shadow: var(--avatar-shadow);
+}
+
+.profile__avatar::after {
+  border-color: var(--image-outline);
+}
+
+.profile__avatar img {
+  object-fit: cover;
+}
+
+.profile__header h1 {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.profile__header p {
+  color: var(--ink-muted);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.profile-section {
+  margin-top: clamp(5rem, 13vw, 7.25rem);
+}
+
+.profile-section h2 {
+  margin-bottom: 1.55rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  line-height: 1.35;
+}
+
+.profile-section__body {
+  display: grid;
+  gap: 1rem;
+}
+
+.profile-section p,
+.project-entry__description,
+.social-sentence {
+  color: var(--ink-muted);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: -0.018em;
+  line-height: 1.58;
+  text-wrap: pretty;
+}
+
+.profile-section p a,
+.social-sentence a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--ink-faint);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 160ms ease;
+}
+
+.star-count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- projects */
+
+.project-list {
+  border-top: 1px solid var(--ink-faint);
+}
+
+.project-entry {
+  position: relative;
+  display: grid;
+  min-height: 8.5rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid var(--ink-faint);
+  grid-template-columns: minmax(10.5rem, 0.82fr) 1.45fr;
+  align-items: center;
+  gap: 1.35rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.project-entry__title {
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: -0.028em;
+  line-height: 1.4;
+}
+
+.project-entry__name {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 160ms ease;
+}
+
+.project-entry__meta {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.profile-section__more {
+  margin: 1.35rem 0 0;
+}
+
+/* ------------------------------------------------------------------- blog */
+
+/* Long-form reading: keep the signature texture, well below the strength it
+   runs at on the short pages. */
+.profile--reading {
+  --backdrop-opacity: 0.16;
+}
+
+.post-nav {
+  margin-bottom: clamp(3rem, 8vw, 4.5rem);
+  font-size: 0.9375rem;
+}
+
+.post-nav a {
+  color: var(--ink-muted);
+  text-decoration: none;
+}
+
+.post-nav a::before {
+  content: "← ";
+}
+
+.post-nav a:hover {
+  color: var(--ink);
+}
+
+.post__header {
+  margin-bottom: clamp(2.5rem, 6vw, 3.5rem);
+}
+
+.post__header h1 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.5rem, 4vw, 1.875rem);
+  font-weight: 600;
+  letter-spacing: -0.034em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.post__date {
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------- table of contents */
+
+/*
+ * Mobile only. On a wide screen the article is already a single short column,
+ * so a contents list there is noise rather than navigation.
+ */
+.post-toc {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .post-toc {
+    display: block;
+    margin-bottom: 2.5rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--ink-faint);
+    border-radius: 0.6rem;
+    background: rgb(var(--paper-rgb) / 62%);
+  }
+
+  .post-toc__heading {
+    margin: 0 0 0.65rem;
+    color: var(--ink);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .post-toc__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .post-toc__item {
+    margin-block: 0.32rem;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+
+  .post-toc__item[data-depth="3"] {
+    padding-left: 0.85rem;
+  }
+
+  .post-toc__item[data-depth="4"] {
+    padding-left: 1.7rem;
+  }
+
+  .post-toc__item a {
+    color: var(--ink-muted);
+    text-decoration: none;
+  }
+
+  .post-toc__item a:hover {
+    color: var(--ink);
+  }
+}
+
+/* ------------------------------------------------------------------ prose */
+
+.prose {
+  color: var(--ink-muted);
+  font-size: 1.0625rem;
+  letter-spacing: -0.018em;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose > :last-child {
+  margin-bottom: 0;
+}
+
+.prose p,
+.prose ul,
+.prose ol,
+.prose blockquote,
+.prose pre,
+.prose table {
+  margin-block: 0 1.35rem;
+}
+
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin-block: 2.75rem 1rem;
+  color: var(--ink);
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.prose h2 {
+  font-size: 1.25rem;
+}
+
+.prose h3 {
+  font-size: 1.0625rem;
+}
+
+.prose h4 {
+  font-size: 1rem;
+}
+
+.prose strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prose a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--ink-faint);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 160ms ease;
+}
+
+.prose a:hover {
+  text-decoration-color: var(--ink);
+}
+
+/* Tailwind's preflight strips list markers, so put them back. */
+.prose ul,
+.prose ol {
+  padding-left: 1.35rem;
+}
+
+.prose ul {
+  list-style: disc;
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
+.prose ul ul {
+  list-style: circle;
+}
+
+.prose li {
+  margin-block: 0.4rem;
+}
+
+.prose li::marker {
+  color: rgb(var(--ink-rgb) / 38%);
+}
+
+.prose blockquote {
+  padding-left: 1.15rem;
+  border-left: 2px solid var(--ink-faint);
+}
+
+.prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.prose hr {
+  margin-block: 2.75rem;
+  border: 0;
+  border-top: 1px solid var(--ink-faint);
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+/* Tables and code can exceed the column, so they scroll inside themselves
+   rather than making the page scroll sideways. */
+.prose table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.prose th,
+.prose td {
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--ink-faint);
+  text-align: left;
+}
+
+.prose th {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* -------------------------------------------------------- inline + code */
+
+.prose :not(pre) > code {
+  padding: 0.15em 0.38em;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.3rem;
+  background: rgb(var(--ink-rgb) / 5%);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+.prose pre {
+  padding: 1rem 1.15rem;
+  overflow-x: auto;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+.prose pre code {
+  display: grid; /* so highlighted lines can span the full width */
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/*
+ * Shiki runs with `defaultColor: false`, so it emits both palettes as CSS
+ * variables and picks neither. That means the theme switch is ours to make —
+ * and it has to key off [data-theme], not `.dark` or prefers-color-scheme,
+ * or code blocks would keep light colours on the dark paper.
+ */
+/*
+ * Only Shiki's syntax *colours* are used. Its theme backgrounds are dropped on
+ * purpose: github-dark's surface is a blue-grey (#24292e) that fights this
+ * site's green-tinted paper. The surface comes from --code-surface instead, so
+ * code blocks read as part of the page rather than pasted in.
+ */
+.prose .shiki,
+.prose .shiki span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+  text-decoration: var(--shiki-light-text-decoration);
+}
+
+:root[data-theme="dark"] .prose .shiki,
+:root[data-theme="dark"] .prose .shiki span {
+  color: var(--shiki-dark);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+  text-decoration: var(--shiki-dark-text-decoration);
+}
+
+.prose pre.shiki {
+  background: var(--code-surface);
+}
+
+.prose .line {
+  display: inline-block;
+  min-width: 100%;
+}
+
+.prose .highlighted {
+  background: rgb(var(--ink-rgb) / 7%);
+}
+
+/* ---------------------------------------------------------------- footer */
+
+.profile-footer {
+  margin-top: clamp(5.5rem, 13vw, 7.25rem);
+  padding-bottom: 2rem;
+}
+
+.social-sentence {
+  margin: 0;
+}
+
+/* -------------------------------------------------------------- controls */
+
+.theme-toggle {
+  position: fixed;
+  z-index: 3;
+  top: max(clamp(1rem, 3vw, 2rem), env(safe-area-inset-top));
+  right: max(clamp(1rem, 3vw, 2rem), env(safe-area-inset-right));
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: var(--control-surface);
+  box-shadow: var(--control-shadow);
+  color: var(--control-ink);
+}
+
+.theme-toggle:hover {
+  background: var(--control-surface-hover);
+  color: var(--control-ink-hover);
+}
+
+/* Both glyphs ship in the markup so the button needs no client state to
+   render correctly, which keeps hydration from mismatching. */
+.theme-toggle__icon--sun {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-toggle__icon--sun {
+  display: block;
+}
+
+:root[data-theme="dark"] .theme-toggle__icon--moon {
+  display: none;
+}
+
+/* ------------------------------------------------------------- backdrop */
+
+.backdrop {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  opacity: var(--backdrop-opacity);
+  pointer-events: none;
+}
+
+.backdrop__field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: transparent;
+
+  /* The reference site confines its grain with a mask uniform inside a custom
+     fragment shader. The stock shader has no mask, so the falloff happens here
+     instead — without it the field covers the page edge to edge. */
+  --backdrop-mask: radial-gradient(
+    ellipse 96% 78% at 62% 20%,
+    rgb(0 0 0 / 100%) 0%,
+    rgb(0 0 0 / 76%) 30%,
+    rgb(0 0 0 / 44%) 55%,
+    rgb(0 0 0 / 18%) 76%,
+    rgb(0 0 0 / 4%) 90%,
+    transparent 100%
+  );
+  mask-image: var(--backdrop-mask);
+  -webkit-mask-image: var(--backdrop-mask);
+}
+
+.backdrop__field canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.backdrop__field--fallback::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background-image: radial-gradient(
+    circle,
+    rgb(var(--ink-rgb) / 44%) 0 0.75px,
+    transparent 1px
+  );
+  background-position: center;
+  background-size: 6px 6px;
+  opacity: 0.42;
+}
+
+/* ------------------------------------------------------- shader lab (temp) */
+
+.shader-lab {
+  width: min(100%, 78rem);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 5rem) 1.25rem 5rem;
+}
+
+.shader-lab__header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.028em;
+}
+
+.shader-lab__header p {
+  max-width: 42rem;
+  margin: 0 0 2.5rem;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+.shader-lab__header code {
+  padding: 0.1em 0.35em;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+.shader-lab__grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+.shader-tile {
+  display: grid;
+  padding: 0;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.7rem;
+  overflow: hidden;
+  background: transparent;
+  text-align: left;
+}
+
+.shader-tile:hover {
+  border-color: rgb(var(--ink-rgb) / 34%);
+}
+
+.shader-tile__canvas {
+  display: block;
+  height: 9rem;
+  border-bottom: 1px solid var(--ink-faint);
+  background: var(--paper);
+}
+
+.shader-tile__label {
+  padding: 0.7rem 0.85rem 0.1rem;
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.shader-tile__note {
+  padding: 0 0.85rem 0.8rem;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.shader-focus {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  background: var(--paper);
+}
+
+.shader-focus__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.shader-focus__bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--ink-faint);
+  background: rgb(var(--paper-rgb) / 88%);
+}
+
+.shader-focus__bar strong {
+  display: block;
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.shader-focus__bar span {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.shader-focus__bar button {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.5rem;
+  background: var(--control-surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+/* ------------------------------------------------------------------ focus */
+
+.project-entry:focus-visible,
+.profile-section a:focus-visible,
+.social-sentence a:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .profile-section p a:hover,
+  .social-sentence a:hover {
+    text-decoration-color: var(--ink);
+  }
+
+  .project-entry:hover .project-entry__name {
+    text-decoration-color: var(--ink);
+  }
+}
+
+@media (max-width: 700px) {
+  .profile__shell {
+    padding-top: max(4.75rem, calc(env(safe-area-inset-top) + 4.25rem));
+  }
+
+  .profile-section {
+    margin-top: 5.25rem;
+  }
+
+  .project-entry {
+    min-height: 9rem;
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 0.35rem 1rem;
+  }
+
+  .project-entry__description {
+    grid-column: 1 / -1;
+    padding-right: 1rem;
+  }
+
+  .backdrop {
+    opacity: 0.42;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-section p a,
+  .social-sentence a,
+  .project-entry__name {
+    transition-duration: 0.01ms !important;
+  }
+}
