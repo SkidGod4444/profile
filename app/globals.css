@@ -977,6 +977,13 @@ html {
   margin: 0;
 }
 
+.visit-count {
+  margin: 1.1rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
 /* -------------------------------------------------------------- controls */
 
 .theme-toggle {

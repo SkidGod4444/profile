@@ -4,6 +4,7 @@ import { Backdrop } from "@/components/backdrop";
 import { PersonSchema } from "@/components/structured-data";
 import { Segments } from "@/components/segments";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { VisitCount } from "@/components/visit-count";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { links, siteConfig } from "@/lib/site-config";
@@ -169,6 +170,7 @@ export default async function Page() {
           <p className="social-sentence">
             <Segments segments={siteConfig.footer} />
           </p>
+          <VisitCount />
         </footer>
       </div>
     </main>
