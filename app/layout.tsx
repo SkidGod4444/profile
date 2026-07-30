@@ -1,6 +1,6 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
-import { Inter_Tight, JetBrains_Mono } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono, Sacramento } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { siteConfig } from "@/lib/site-config";
@@ -22,6 +22,15 @@ const interTight = Inter_Tight({
   // face renders <em> upright, silently dropping emphasis in prose.
   style: ["normal", "italic"],
   variable: "--font-inter-tight",
+  display: "swap",
+});
+
+/* Signature only. A flowing script reads as a sign-off where a marker-style
+   handwriting face would just look like a different body font. */
+const sacramento = Sacramento({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-sacramento",
   display: "swap",
 });
 
@@ -117,7 +126,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="dark"
-      className={`${interTight.variable} ${jetbrainsMono.variable}`}
+      className={`${interTight.variable} ${jetbrainsMono.variable} ${sacramento.variable}`}
       suppressHydrationWarning
     >
       <head>

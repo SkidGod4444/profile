@@ -66,6 +66,14 @@ export default async function Page() {
       <ThemeToggle />
 
       <div className="profile__shell">
+        <nav className="site-nav" aria-label="Sections">
+          {siteConfig.nav.map((item) => (
+            <Link href={item.href} key={item.href}>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
         <header className="profile__header">
           <div className="profile__who">
             <Avatar className="profile__avatar">
@@ -95,7 +103,10 @@ export default async function Page() {
         </header>
 
         <section className="profile-section" aria-labelledby="now-title">
-          <h2 id="now-title">Now</h2>
+          <div className="profile-section__head">
+            <h2 id="now-title">Now</h2>
+            <p className="profile-section__note">{siteConfig.sections.now}</p>
+          </div>
           <div className="profile-section__body">
             {siteConfig.now.map((paragraph, index) => (
               <p key={index}>
@@ -105,9 +116,26 @@ export default async function Page() {
           </div>
         </section>
 
+        <section className="profile-section" aria-labelledby="past-title">
+          <div className="profile-section__head">
+            <h2 id="past-title">Past</h2>
+            <p className="profile-section__note">{siteConfig.sections.past}</p>
+          </div>
+          <div className="profile-section__body">
+            {siteConfig.past.map((paragraph, index) => (
+              <p key={index}>
+                <Segments segments={paragraph} />
+              </p>
+            ))}
+          </div>
+        </section>
+
         {recentPosts.length > 0 && (
           <section className="profile-section" aria-labelledby="writing-title">
+            <div className="profile-section__head">
             <h2 id="writing-title">Writing</h2>
+            <p className="profile-section__note">{siteConfig.sections.writing}</p>
+          </div>
 
             <div className="project-list">
               {recentPosts.map((post) => (
@@ -139,7 +167,10 @@ export default async function Page() {
         )}
 
         <section className="profile-section" aria-labelledby="projects-title">
-          <h2 id="projects-title">Projects</h2>
+          <div className="profile-section__head">
+            <h2 id="projects-title">Projects</h2>
+            <p className="profile-section__note">{siteConfig.sections.projects}</p>
+          </div>
 
           {/* Rows go to the project's own page; the live site is linked
               there, alongside the write-up. */}
@@ -170,7 +201,15 @@ export default async function Page() {
           <p className="social-sentence">
             <Segments segments={siteConfig.footer} />
           </p>
-          <VisitCount />
+
+          <div className="profile-footer__meta">
+            <a href="/feed.xml">RSS</a>
+            <VisitCount />
+          </div>
+
+          {/* A signature typeface, not a scan of Saidev's hand — swap this for
+              an <img> of a real signature if he ever wants one. */}
+          <p className="signature">{siteConfig.name}</p>
         </footer>
       </div>
     </main>

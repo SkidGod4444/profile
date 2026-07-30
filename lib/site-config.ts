@@ -24,6 +24,9 @@ export type Segment =
 export const links = {
   site: "https://saidev.codes",
   github: "https://github.com/SkidGod4444",
+  /* Verified to resolve to github.com/SkidGod4444. Used for display; the
+     canonical URL in `profiles` is what the structured data advertises. */
+  githubShort: "https://git.new/skidgod",
   x: "https://ref.saidev.codes/x",
   linkedin: "https://ref.saidev.codes/linkedin",
   email: "mailto:connect.saidev@gmail.com",
@@ -36,6 +39,10 @@ export const links = {
   x0gpt: "https://x0-gpt.devwtf.in",
   prexo: "https://prexoai.xyz",
   indexflow: "https://indexflow.site",
+  ellenox: "https://www.ellenox.com",
+  buildspace: "https://buildspace.so",
+  iitm: "https://www.iitm.ac.in",
+  bserc: "https://bserc.in",
 } as const;
 
 export const siteConfig = {
@@ -47,7 +54,7 @@ export const siteConfig = {
 
   /** Used for the page title suffix, meta description and OG tags. */
   description:
-    "Software engineer and OSS builder from New Delhi. I founded OpenHorizon Labs, where I build Sapient, and ship open source as SkidGod.",
+    "Software engineer and OSS builder from New Delhi. I founded OpenHorizon Labs, working on physical AI and robotics, and ship open source as SkidGod.",
 
   /*
    * Search engines ignore the keywords meta tag, but LLM crawlers and social
@@ -98,6 +105,39 @@ export const siteConfig = {
     fallbackStars: 39,
   },
 
+  /**
+   * Plain text links at the top of the page. Labelled with their own path, so
+   * the label and the destination can never drift apart.
+   */
+  nav: [
+    { label: "/writings", href: "/writings" },
+    { label: "/projects", href: "/projects" },
+    { label: "/talks", href: "/talks" },
+  ],
+
+  /**
+   * Talks and workshops, newest first, each pointing at proof — a recording,
+   * a write-up, a photo set or a certificate.
+   */
+  talks: [] as ReadonlyArray<{
+    title: string;
+    event: string;
+    href: string;
+    date: string;
+    note?: string;
+  }>,
+
+  /**
+   * A line under each section heading. Kept to a handful of words — these are
+   * labels that orient a reader, not summaries of what follows.
+   */
+  sections: {
+    now: "What I am doing at the moment",
+    past: "How I got here",
+    writing: "Essays and technical write-ups",
+    projects: "Things I have built",
+  },
+
   /** How many recent posts the home page lists before linking to /writings. */
   writingsOnHome: 3,
 
@@ -106,31 +146,74 @@ export const siteConfig = {
     [
       "I founded ",
       { text: "OpenHorizon Labs", href: links.openHorizon },
-      ", where I build ",
-      { text: "Sapient", href: links.sapient },
-      ". It makes your hardware think, see, listen and speak, and it is written in Rust.",
+      ". We are trying to build something in physical AI and robotics. What exactly, we have not figured out yet.",
     ],
     [
-      "I have been shipping open source as ",
+      { text: "Sapient", href: links.sapient },
+      " came out of that — a small side project, written in Rust, that makes hardware think, see, listen and speak. That one you can actually use today.",
+    ],
+    [
+      "I ship open source as ",
       { text: "SkidGod", href: links.github },
-      " since I was fourteen — the name started as an insult and I kept it. The largest of those projects, ",
+      ". The largest of those projects, ",
       { text: "x0-GPT", href: `https://github.com/SkidGod4444/x0-GPT` },
       ", has ",
       { stars: true },
-      " stars on GitHub. I am always exploring new ideas, particularly in machine learning and robotics.",
+      " stars on GitHub. Most of my attention goes to machine learning and robotics.",
     ],
+    [
+      "I also freelance, and I am taking on new work. If you need a full-stack SaaS — web, app, AI, or all three — I can build the whole thing. ",
+      { text: "Let's talk", href: links.whatsapp },
+      ".",
+    ],
+  ] satisfies Segment[][],
+
+  /*
+   * The "Past" section, told as prose rather than a list of roles — same
+   * segment format as `now`, so links sit inside the sentences.
+   *
+   * Chronological on purpose: read forwards it explains how he got to the
+   * company described in `now`. Dates and titles come from his LinkedIn.
+   */
+  past: [
+    [
+      "I go by SkidGod because I was one. A skid is someone who runs on other people's code, and at fourteen that was me — lifting Discord bots and shipping them as my own. It started as an insult. I kept it.",
+    ],
+    [
+      "What I actually wanted was the founder tag in those servers. So I learned discord.py and built my own bot instead. That is where my tech career started, and I stayed because it turned out I found it genuinely interesting.",
+    ],
+    [
+      "In 2024 I was at ",
+      { text: "Ellenox", href: links.ellenox },
+      ", running hackathons and tech support and managing a Discord community of 2,000+ members. The same year I spent nights and weekends in ",
+      { text: "buildspace", href: links.buildspace },
+      "'s S5 cohort.",
+    ],
+    [
+      "In January 2025 I joined ",
+      { text: "IIT Madras", href: links.iitm },
+      " as technical lead. Nine months of product development and strategy, working with the engineering team and a professor to build the MVP.",
+    ],
+    [
+      "Then two months at ",
+      { text: "Bharat Space Education Research Centre", href: links.bserc },
+      " as a def-space tech intern, on aircraft design and robotics.",
+    ],
+    ["Which is the short version of how I ended up starting my own thing."],
   ] satisfies Segment[][],
 
   /** The closing sentence in the footer. */
   footer: [
-    "Find my code on ",
-    { text: "GitHub", href: links.github },
-    ". You can also reach me through ",
+    "My code is on ",
+    { text: "GitHub", href: links.githubShort },
+    ". I am on ",
     { text: "X", href: links.x },
-    ", ",
+    " and ",
     { text: "LinkedIn", href: links.linkedin },
-    ", or ",
+    ". ",
+    { text: "WhatsApp", href: links.whatsapp },
+    " me if you want to talk, or ",
     { text: "email", href: links.email },
-    ".",
+    " if that is easier.",
   ] satisfies Segment[],
 } as const;

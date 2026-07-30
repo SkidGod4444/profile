@@ -30,6 +30,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.9,
     },
+    // Only advertised once it has content; see the robots rule on the page.
+    ...(siteConfig.talks.length > 0
+      ? [
+          {
+            url: `${siteConfig.url}/talks`,
+            lastModified: latestPostDate,
+            changeFrequency: "monthly" as const,
+            priority: 0.6,
+          },
+        ]
+      : []),
     ...projects.map((project) => ({
       url: `${siteConfig.url}${project.url}`,
       lastModified: latestPostDate,

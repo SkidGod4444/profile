@@ -67,6 +67,7 @@
     sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular,
     monospace;
+  --font-signature: var(--font-sacramento), cursive;
 
   /*
    * shadcn design tokens, mapped onto the palette above instead of the
@@ -330,7 +331,7 @@ html {
   min-height: 100svh;
   width: min(100%, calc(42rem + var(--gutter) * 2));
   margin: 0 auto;
-  padding-block: clamp(4rem, 11vw, 7.5rem)
+  padding-block: clamp(2rem, 5.5vw, 3.75rem)
     calc(4rem + env(safe-area-inset-bottom));
   padding-inline: max(var(--gutter), env(safe-area-inset-left))
     max(var(--gutter), env(safe-area-inset-right));
@@ -341,6 +342,32 @@ html {
 .profile-section h2,
 .profile-section p {
   margin: 0;
+}
+
+/* Plain text links, not a chrome bar — the same weight as body copy. */
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: clamp(1.5rem, 4vw, 2.25rem);
+  gap: 0.2rem 1.15rem;
+  font-size: 0.9375rem;
+  letter-spacing: -0.012em;
+}
+
+.site-nav a {
+  color: var(--ink-muted);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
+}
+
+.site-nav a:hover {
+  color: var(--ink);
+  text-decoration-color: var(--ink-faint);
 }
 
 .profile__header {
@@ -442,16 +469,36 @@ html {
   margin-top: clamp(1.75rem, 4vw, 2.75rem);
 }
 
-.profile-section > h2 {
+/* The band now holds the heading and its one-line description side by side. */
+.profile-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   margin: 0 calc(var(--gutter) * -1);
   padding: 0.65rem var(--gutter);
+  gap: 0.15rem 0.7rem;
   border-top: 1px solid var(--grid-line);
   border-bottom: 1px solid var(--grid-line);
+}
+
+.profile-section__head h2 {
+  margin: 0;
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.028em;
   line-height: 1.35;
 }
+
+/* Its own class rather than a descendant selector, because `.profile-section p`
+   styles body copy at the same specificity and would win on source order. */
+.profile-section__note {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  letter-spacing: -0.006em;
+  line-height: 1.4;
+}
+
 
 .profile-section__body {
   display: grid;
@@ -497,7 +544,7 @@ html {
   border-top: 1px solid var(--ink-faint);
 }
 
-.profile-section > h2 + .project-list {
+.profile-section__head + .project-list {
   border-top: 0;
 }
 
@@ -1009,9 +1056,55 @@ html {
 
 /* ---------------------------------------------------------------- footer */
 
+/* Sits under a rule that runs the full column, like the section bands do. */
 .profile-footer {
-  margin-top: clamp(2.25rem, 5vw, 3.25rem);
-  padding-bottom: 2rem;
+  margin: clamp(2.25rem, 5vw, 3.25rem) calc(var(--gutter) * -1) 0;
+  padding: 1.5rem var(--gutter) 1rem;
+  border-top: 1px solid var(--grid-line);
+}
+
+.profile-footer__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-top: 1.1rem;
+  gap: 0.3rem 1.1rem;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+
+.profile-footer__meta a {
+  color: var(--ink-muted);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
+}
+
+.profile-footer__meta a:hover {
+  color: var(--ink);
+  text-decoration-color: var(--ink-faint);
+}
+
+/* The counter is a plain paragraph elsewhere; inside the meta row it is just
+   another inline item. */
+.profile-footer__meta .visit-count {
+  margin: 0;
+  font-size: inherit;
+}
+
+/* Tilted a couple of degrees so it reads as written rather than typeset. */
+.signature {
+  margin: 1.5rem 0 0;
+  color: var(--ink-muted);
+  font-family: var(--font-signature);
+  font-size: 2.25rem;
+  line-height: 1;
+  transform: rotate(-3deg);
+  transform-origin: left center;
 }
 
 .social-sentence {
