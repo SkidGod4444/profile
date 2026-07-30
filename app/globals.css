@@ -635,44 +635,53 @@ html {
 }
 
 .ai-actions {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: 1.15rem;
-  gap: 0.4rem;
+  flex: 0 0 auto;
 }
 
-.ai-actions__item {
-  display: inline-flex;
-  padding: 0.35rem 0.7rem;
-  border: 1px solid var(--ink-faint);
+.ai-actions__trigger {
+  height: 2.1rem;
+  padding-inline: 0.75rem;
+  border-color: var(--ink-faint);
   border-radius: 0.5rem;
-  align-items: center;
-  gap: 0.4rem;
   background: var(--glass-surface);
   backdrop-filter: blur(16px) saturate(150%);
   color: var(--ink-muted);
-  font-family: inherit;
   font-size: 0.8125rem;
   letter-spacing: -0.008em;
-  text-decoration: none;
-  transition:
-    background-color 160ms ease,
-    color 160ms ease;
 }
 
-.ai-actions__item svg {
-  width: 0.85rem;
-  height: 0.85rem;
-}
-
-.ai-actions__item:hover {
+.ai-actions__trigger:hover {
   background: var(--glass-surface-hover);
   color: var(--ink);
 }
 
-.ai-actions__item:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
+.ai-actions__trigger svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+/* Opaque, so the article never shows through the open menu. */
+.ai-actions__menu {
+  min-width: 13rem;
+  border-color: var(--ink-faint);
+  background: var(--control-surface);
+  font-size: 0.8125rem;
+}
+
+.ai-actions__menu [data-slot="dropdown-menu-item"] {
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.ai-actions__menu [data-slot="dropdown-menu-item"]:hover,
+.ai-actions__menu [data-slot="dropdown-menu-item"][data-highlighted] {
+  background: var(--control-surface-hover);
+  color: var(--ink);
+}
+
+.ai-actions__menu svg {
+  width: 0.85rem;
+  height: 0.85rem;
 }
 
 /* -------------------------------------------------------- table of contents */
@@ -681,160 +690,225 @@ html {
  * Pinned to the top of the viewport for the length of the article, and a native
  * <details> so collapsing costs no JavaScript and works before hydration.
  */
-.post-toc {
+/*
+ * The contents panel and the Ask AI control pin together as one floating row,
+ * each taking exactly half of it. Sticky lives on the row rather than either
+ * child so they cannot drift apart, and both children are the same height, so
+ * opening either one does not change the row.
+ */
+.post-tools {
+  --tool-height: 2.25rem;
+
   position: sticky;
   top: 0.75rem;
-  z-index: 2;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
   margin-bottom: clamp(2rem, 5vw, 2.75rem);
+  gap: 0.6rem;
 }
 
-/*
- * Frosted rather than solid: a tint carries the surface, the blur keeps the
- * article legible as it scrolls underneath. Browsers without backdrop-filter
- * still get the tint, so it degrades to translucent instead of to nothing.
- */
-.post-toc__panel {
+.post-toc,
+.ai-actions {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.post-toc__button,
+.ai-actions__trigger {
+  display: inline-flex;
+  width: 100%;
+  height: var(--tool-height);
+  padding-inline: 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
   border: 1px solid var(--ink-faint);
-  border-radius: 0.6rem;
+  border-radius: 0.5rem;
   background: var(--glass-surface);
   backdrop-filter: blur(16px) saturate(150%);
+  color: var(--ink-muted);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  letter-spacing: -0.008em;
 }
 
-.post-toc__summary {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.7rem 1rem;
+.post-toc__button:hover,
+.ai-actions__trigger:hover {
+  background: var(--glass-surface-hover);
   color: var(--ink);
-  font-size: 0.8125rem;
+}
+
+.post-toc__button svg,
+.ai-actions__trigger svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex: none;
+}
+
+.post-toc__button:focus-visible,
+.ai-actions__trigger:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* Shared by both tools so the pair reads as one control. */
+.tool-label {
+  overflow: hidden;
   font-weight: 600;
   letter-spacing: 0.02em;
+  text-overflow: ellipsis;
   text-transform: uppercase;
-  list-style: none;
+  white-space: nowrap;
 }
 
-/* Both are needed to drop the native disclosure triangle across browsers. */
-.post-toc__summary::-webkit-details-marker {
-  display: none;
-}
-
-.post-toc__label {
-  margin-right: auto;
+/* Pushes the chevron to the far edge, matching where the TOC's count sits. */
+.ai-actions__trigger > svg:last-child {
+  margin-left: auto;
 }
 
 .post-toc__count {
-  color: var(--ink-muted);
-  font-weight: 400;
+  margin-left: auto;
   font-variant-numeric: tabular-nums;
 }
 
-/* Direction alone signals state — no motion, in keeping with the rest. */
-.post-toc__summary::after {
-  width: 0.42rem;
-  height: 0.42rem;
-  border-right: 1.5px solid var(--ink-muted);
-  border-bottom: 1.5px solid var(--ink-muted);
-  content: "";
-  transform: translateY(-0.12em) rotate(45deg);
+.post-toc__button[aria-expanded="true"] svg {
+  transform: rotate(180deg);
 }
 
-.post-toc__panel[open] .post-toc__summary::after {
-  transform: translateY(0.06em) rotate(-135deg);
+/* An overlay, so the row keeps its height whether the list is open or shut. */
+.post-toc__panel {
+  position: absolute;
+  z-index: 4;
+  top: calc(var(--tool-height) + 0.35rem);
+  left: 0;
+  width: max(100%, 15rem);
+  max-height: min(50vh, 22rem);
+  overflow-y: auto;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--ink-faint);
+  border-radius: 0.5rem;
+  /* Opaque: the article must not read through an open menu. */
+  background: var(--control-surface);
+  box-shadow: var(--control-shadow);
 }
 
 .post-toc__list {
-  /* Bounded so a long contents list cannot fill the screen while pinned. */
-  max-height: min(50vh, 22rem);
+  position: relative;
   margin: 0;
-  padding: 0.75rem 1rem 0.9rem;
-  overflow-y: auto;
-  border-top: 1px solid var(--ink-faint);
+  padding: 0 0 0 0.7rem;
   list-style: none;
 }
 
+/* The rail the marker slides along. */
+.post-toc__list::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--ink-faint);
+  content: "";
+}
+
+/* Follows whichever heading is on screen. Height as well as position, since
+   rows wrap to different heights. */
+.post-toc__marker {
+  position: absolute;
+  left: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--ink);
+  transition:
+    transform 220ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)),
+    height 220ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)),
+    opacity 160ms ease;
+}
+
 .post-toc__item {
-  margin-block: 0.32rem;
-  font-size: 0.9375rem;
+  margin-block: 0.28rem;
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 
 .post-toc__item[data-depth="3"] {
-  padding-left: 0.85rem;
+  padding-left: 0.75rem;
 }
 
 .post-toc__item[data-depth="4"] {
-  padding-left: 1.7rem;
+  padding-left: 1.5rem;
 }
 
 .post-toc__item a {
   color: var(--ink-muted);
   text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.post-toc__item[data-active="true"] a {
+  color: var(--ink);
 }
 
 .post-toc__item a:hover {
   color: var(--ink);
 }
 
+/* Opaque, so the article never shows through the open menu. */
+.ai-actions__menu {
+  min-width: 13rem;
+  border-color: var(--ink-faint);
+  background: var(--control-surface);
+  font-size: 0.8125rem;
+}
+
+.ai-actions__menu [data-slot="dropdown-menu-item"] {
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.ai-actions__menu [data-slot="dropdown-menu-item"]:hover,
+.ai-actions__menu [data-slot="dropdown-menu-item"][data-highlighted] {
+  background: var(--control-surface-hover);
+  color: var(--ink);
+}
+
+.ai-actions__menu svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+/*
+ * On a phone the pair share ~340px, and at the desktop type size both labels
+ * hit their ellipsis. Tighter type and padding, and the decorative count goes,
+ * so each label renders in full rather than as "ON THIS P…".
+ */
 @media (max-width: 700px) {
-  /* Keep the label and chevron clear of the fixed theme toggle. */
-  .post-toc__summary {
-    padding-right: 3.5rem;
+  .post-tools {
+    --tool-height: 2.1rem;
+    gap: 0.4rem;
+  }
+
+  .post-toc__button,
+  .ai-actions__trigger {
+    padding-inline: 0.55rem;
+    gap: 0.35rem;
+    font-size: 0.6875rem;
+  }
+
+  .post-toc__count {
+    display: none;
+  }
+
+  .post-toc__button svg,
+  .ai-actions__trigger svg {
+    width: 0.8rem;
+    height: 0.8rem;
   }
 }
 
-/* --------------------------------------------------------------- projects */
-
-.post__lede {
-  margin: 0 0 1.6rem;
-  color: var(--ink-muted);
-  font-size: 1.0625rem;
-  letter-spacing: -0.018em;
-  line-height: 1.55;
-  text-wrap: pretty;
-}
-
-.project-facts {
-  margin: 0 calc(var(--gutter) * -1);
-  padding-top: 1.15rem;
-  border-top: 1px solid var(--ink-faint);
-  font-size: 0.9375rem;
-}
-
-.project-facts__row {
-  padding-inline: var(--gutter);
-}
-
-.project-facts__row {
-  display: grid;
-  grid-template-columns: 7rem 1fr;
-  gap: 1rem;
-  padding-block: 0.42rem;
-}
-
-.project-facts dt {
-  color: var(--ink-muted);
-}
-
-.project-facts dd {
-  margin: 0;
-  color: var(--ink);
-}
-
-.project-facts a {
-  color: var(--ink);
-  text-decoration: underline;
-  text-decoration-color: var(--ink-faint);
-  text-underline-offset: 0.18em;
-}
-
-.project-facts a:hover {
-  text-decoration-color: var(--ink);
-}
-
-@media (max-width: 700px) {
-  .project-facts__row {
-    grid-template-columns: 5.5rem 1fr;
-    gap: 0.75rem;
+@media (prefers-reduced-motion: reduce) {
+  .post-toc__marker {
+    transition-duration: 0.01ms !important;
   }
 }
 

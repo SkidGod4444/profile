@@ -1,33 +1,67 @@
 "use client";
 
-import { Check, Copy, Sparkles } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Copy,
+  ExternalLink,
+  FileText,
+  Sparkles,
+} from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 /*
- * "Open with AI" actions for a post, in the pattern Fumadocs uses for its docs
- * — copy the page as Markdown, or hand its Markdown URL to an assistant.
+ * A single "Open" control offering the page as Markdown, plus handing its
+ * Markdown URL to an assistant — the pattern Fumadocs uses for its docs.
  *
  * Built here rather than imported from `fumadocs-ui`, which is deliberately not
- * installed: it ships a whole docs theme. The mechanism is just the raw
- * Markdown route plus two prefilled query strings.
+ * installed: it ships an entire docs theme and its own palette. Underneath, each
+ * option is just a prefilled query string against the raw Markdown route.
  */
 
 type Props = {
-  /** Same-origin path used to fetch the Markdown for copying. */
+  /** Same-origin path used to fetch and to link the Markdown. */
   rawPath: string;
   /**
-   * Public absolute URL of that same Markdown, handed to the assistant.
+   * Public absolute URL of that Markdown, handed to the assistant.
    *
-   * Passed in from the server rather than derived from `window.location`:
-   * deriving it on the client only would differ from the server render and
-   * break hydration, and a localhost URL is useless to an assistant anyway.
+   * Passed from the server rather than read off `window.location`: deriving it
+   * client-side only would differ from the server render and break hydration,
+   * and a localhost URL is useless to an assistant.
    */
   shareUrl: string;
   title: string;
 };
 
-function prompt(url: string, title: string) {
-  return `Read ${url} — it is the article "${title}" in Markdown. Summarise it, then I have questions.`;
+function buildTargets(url: string, title: string) {
+  const prompt = `Read ${url} — it is the article "${title}" in Markdown. Summarise it, then I have questions.`;
+
+  return [
+    {
+      name: "ChatGPT",
+      href: `https://chatgpt.com/?${new URLSearchParams({ hints: "search", prompt })}`,
+    },
+    {
+      name: "Claude",
+      href: `https://claude.ai/new?${new URLSearchParams({ q: prompt })}`,
+    },
+    {
+      name: "Cursor",
+      href: `https://cursor.com/link/prompt?${new URLSearchParams({ text: prompt })}`,
+    },
+    {
+      name: "Scira",
+      href: `https://scira.ai/?${new URLSearchParams({ q: prompt })}`,
+    },
+  ];
 }
 
 export function AiActions({ rawPath, shareUrl, title }: Props) {
@@ -49,43 +83,50 @@ export function AiActions({ rawPath, shareUrl, title }: Props) {
     }
   }
 
-  const query = encodeURIComponent(prompt(shareUrl, title));
-
   return (
     <div className="ai-actions">
-      <button
-        className="ai-actions__item"
-        type="button"
-        onClick={copyMarkdown}
-        aria-label="Copy this page as Markdown"
-      >
-        {copied ? (
-          <Check aria-hidden="true" />
-        ) : (
-          <Copy aria-hidden="true" />
-        )}
-        {copied ? "Copied" : "Copy as Markdown"}
-      </button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button className="ai-actions__trigger" variant="outline">
+            <Sparkles aria-hidden="true" />
+            <span className="tool-label">Ask about this</span>
+            <ChevronDown aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
 
-      <a
-        className="ai-actions__item"
-        href={`https://claude.ai/new?q=${query}`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        <Sparkles aria-hidden="true" />
-        Open in Claude
-      </a>
+        <DropdownMenuContent align="start" className="ai-actions__menu">
+          <DropdownMenuItem onSelect={(event) => {
+            // Keep the menu's focus handling from cancelling the async copy.
+            event.preventDefault();
+            void copyMarkdown();
+          }}>
+            {copied ? (
+              <Check aria-hidden="true" />
+            ) : (
+              <Copy aria-hidden="true" />
+            )}
+            {copied ? "Copied" : "Copy as Markdown"}
+          </DropdownMenuItem>
 
-      <a
-        className="ai-actions__item"
-        href={`https://chatgpt.com/?q=${query}`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        <Sparkles aria-hidden="true" />
-        Open in ChatGPT
-      </a>
+          <DropdownMenuItem asChild>
+            <a href={rawPath} target="_blank" rel="noreferrer">
+              <FileText aria-hidden="true" />
+              View as Markdown
+            </a>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          {buildTargets(shareUrl, title).map((target) => (
+            <DropdownMenuItem asChild key={target.name}>
+              <a href={target.href} target="_blank" rel="noreferrer">
+                <ExternalLink aria-hidden="true" />
+                Open in {target.name}
+              </a>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
