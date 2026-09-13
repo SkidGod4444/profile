@@ -1,6 +1,7 @@
 import { CalendarDays, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { Backdrop } from "@/components/backdrop";
+import { ProjectList } from "@/components/project-list";
 import { PersonSchema } from "@/components/structured-data";
 import { Segments } from "@/components/segments";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -174,27 +175,7 @@ export default async function Page() {
 
           {/* Rows go to the project's own page; the live site is linked
               there, alongside the write-up. */}
-          <div className="project-list">
-            {projects.map((project) => (
-              <Link
-                className="project-entry"
-                href={project.url}
-                key={project.url}
-              >
-                <span className="project-entry__title">
-                  <span className="project-entry__name">
-                    {project.data.title}
-                  </span>
-                  <span className="project-entry__meta">
-                    {project.data.year}
-                  </span>
-                </span>
-                <span className="project-entry__description">
-                  {project.data.description}
-                </span>
-              </Link>
-            ))}
-          </div>
+          <ProjectList projects={projects} />
         </section>
 
         <footer className="profile-footer">

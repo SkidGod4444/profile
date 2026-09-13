@@ -33,6 +33,30 @@ export const projectPages = defineCollections({
     repo: z.string().optional(),
     stack: z.array(z.string()).default([]),
     year: z.string(),
+    /**
+     * Screenshots and demos, shown edge to edge under the facts. The kind is
+     * read off `src`: YouTube links embed, .mp4/.webm/.mov play inline,
+     * anything else is an image.
+     *
+     * Image files live in content/projects/media/ and are named by file name
+     * alone ("sapient.png"), so Next can read their size and build a blur
+     * placeholder at build time. A remote image URL needs `width` and
+     * `height`; without them it fills a 16:9 box. Video files go in public/.
+     */
+    media: z
+      .array(
+        z.object({
+          src: z.string(),
+          /** Alt text for images; the accessible title for video. */
+          alt: z.string().default(""),
+          caption: z.string().optional(),
+          /** Still frame shown before a video plays. */
+          poster: z.string().optional(),
+          width: z.number().optional(),
+          height: z.number().optional(),
+        }),
+      )
+      .default([]),
     /** Lower sorts first on the index. */
     order: z.number().default(99),
     draft: z.boolean().default(false),

@@ -52,6 +52,12 @@ Things that will bite:
 - ESLint ignores `.source/`; the generated files carry their own `@ts-nocheck`.
 - Project bodies are intentionally optional. Frontmatter alone renders a
   complete page, so a project with no write-up still looks finished.
+- Project `media` (frontmatter) renders under the facts. Image files go in
+  `content/projects/media/` and are named by file name only: the component
+  dynamic-imports them so `next/image` gets real dimensions and a blur
+  placeholder. Turbopack needs at least one image in that folder to build
+  the import context, which is what `placeholder.png` is for — do not delete
+  it. YouTube URLs embed, video files play inline.
 
 `lib/site-config.ts` holds identity, every URL, the "Now" prose and the footer —
 but **not** the project list, which lives in MDX. Prose containing inline links

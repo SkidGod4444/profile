@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AiActions } from "@/components/ai-actions";
 import { Backdrop } from "@/components/backdrop";
+import { PostToc } from "@/components/post-toc";
+import { ProjectMedia } from "@/components/project-media";
+import { ProjectSchema } from "@/components/structured-data";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { siteConfig } from "@/lib/site-config";
+import { cn } from "@/lib/utils";
 import { getPublishedProjects, projects } from "@/lib/source";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -32,7 +38,55 @@ export async function generateMetadata({
       title: project.data.title,
       description: project.data.description,
     },
+    twitter: {
+      card: "summary_large_image",
+      title: project.data.title,
+      description: project.data.description,
+    },
   };
+}
+
+function Fact({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-[minmax(6.5rem,0.6fr)_1.45fr] gap-4 border-b border-(--grid-line) px-(--gutter) py-[0.7rem] text-[0.9375rem] leading-[1.5] tracking-[-0.012em] sm:grid-cols-[minmax(10.5rem,0.82fr)_1.45fr] sm:gap-[1.35rem]">
+      <dt className="text-(--ink-muted)">{label}</dt>
+      <dd className="min-w-0 wrap-anywhere text-(--ink) tabular-nums">
+        {children}
+      </dd>
+    </div>
+  );
+}
+
+/* Underlined like body links, with an outward arrow for leaving the site —
+   the same glyph family as the back link's arrow. */
+function External({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
+  return (
+    <a
+      className="underline decoration-(--ink-faint) decoration-1 underline-offset-[0.18em] transition-[text-decoration-color] duration-150 after:text-(--ink-muted) after:content-['_↗'] hover:decoration-(--ink)"
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+    >
+      {children}
+    </a>
+  );
+}
+
+/** Strips the scheme so a URL reads as a name rather than an address. */
+function displayUrl(url: string) {
+  return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 }
 
 export default async function ProjectPage({ params }: PageProps) {
@@ -44,9 +98,25 @@ export default async function ProjectPage({ params }: PageProps) {
   }
 
   const Mdx = project.data.body;
+  /* Frontmatter alone is a finished page; the write-up only appears once
+     there is prose to read, and the sticky tools row only once that prose
+     has headings worth a contents list. */
+  const hasBody =
+    project.data.toc.length > 0 ||
+    project.data.structuredData.contents.length > 0;
+  const hasToc = project.data.toc.length > 0;
 
   return (
     <main className="profile profile--reading">
+      <ProjectSchema
+        title={project.data.title}
+        description={project.data.description}
+        url={project.url}
+        liveUrl={project.data.url}
+        repo={project.data.repo}
+        stack={project.data.stack}
+        year={project.data.year}
+      />
       <Backdrop />
       <ThemeToggle />
 
@@ -56,51 +126,58 @@ export default async function ProjectPage({ params }: PageProps) {
         </nav>
 
         <article className="post">
-          <header className="post__header">
+          {/* Without a write-up the header is the whole article, so it drops
+              the reading gap it normally leaves before the prose. */}
+          <header className={cn("post__header", !hasBody && "mb-0!")}>
             <h1>{project.data.title}</h1>
-            <p className="post__lede">{project.data.description}</p>
+            <p className="text-[1.0625rem] leading-[1.5] tracking-[-0.018em] text-pretty text-(--ink-muted)">
+              {project.data.description}
+            </p>
 
-            <dl className="project-facts">
-              <div className="project-facts__row">
-                <dt>Year</dt>
-                <dd>{project.data.year}</dd>
-              </div>
+            {/* A banded fact list on the same two columns as a project row,
+                its rules running out to the grid lines like every other
+                horizontal rule on the site. */}
+            <dl className="-mx-(--gutter) mt-[clamp(1.75rem,4vw,2.25rem)] border-t border-(--grid-line)">
+              <Fact label="Year">{project.data.year}</Fact>
               {project.data.stack.length > 0 && (
-                <div className="project-facts__row">
-                  <dt>Built with</dt>
-                  <dd>{project.data.stack.join(", ")}</dd>
-                </div>
+                <Fact label="Built with">{project.data.stack.join(", ")}</Fact>
               )}
-              <div className="project-facts__row">
-                <dt>Live</dt>
-                <dd>
-                  <a href={project.data.url} target="_blank" rel="noreferrer">
-                    {project.data.url.replace(/^https?:\/\//, "")}
-                  </a>
-                </dd>
-              </div>
+              <Fact label="Live">
+                <External href={project.data.url}>
+                  {displayUrl(project.data.url)}
+                </External>
+              </Fact>
               {project.data.repo && (
-                <div className="project-facts__row">
-                  <dt>Source</dt>
-                  <dd>
-                    <a
-                      href={project.data.repo}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {project.data.repo.replace("https://github.com/", "")}
-                    </a>
-                  </dd>
-                </div>
+                <Fact label="Source">
+                  <External href={project.data.repo}>
+                    {project.data.repo.replace("https://github.com/", "")}
+                  </External>
+                </Fact>
               )}
             </dl>
+
+            <ProjectMedia items={project.data.media} />
           </header>
 
-          {/* Optional: a project with no write-up yet still renders as a
-              finished page, just the facts above. */}
-          <div className="prose">
-            <Mdx />
-          </div>
+          {hasBody && (
+            <>
+              {hasToc && (
+                <div className="post-tools">
+                  <PostToc items={project.data.toc} />
+
+                  <AiActions
+                    rawPath={`${project.url}/raw`}
+                    shareUrl={`${siteConfig.url}${project.url}/raw`}
+                    title={project.data.title}
+                  />
+                </div>
+              )}
+
+              <div className="prose">
+                <Mdx />
+              </div>
+            </>
+          )}
         </article>
       </div>
     </main>

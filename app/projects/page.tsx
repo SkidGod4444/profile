@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Backdrop } from "@/components/backdrop";
+import { ProjectList } from "@/components/project-list";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { siteConfig } from "@/lib/site-config";
 import { getPublishedProjects } from "@/lib/source";
@@ -38,30 +39,7 @@ export default function ProjectsPage() {
         </header>
 
         <section className="profile-section">
-          <div className="project-list">
-            {projects.map((project) => (
-              <Link
-                className="project-entry"
-                href={project.url}
-                key={project.url}
-              >
-                <span className="project-entry__title">
-                  <span className="project-entry__name">
-                    {project.data.title}
-                  </span>
-                  <span className="project-entry__meta">
-                    {project.data.year}
-                    {project.data.stack.length > 0
-                      ? ` · ${project.data.stack.join(", ")}`
-                      : ""}
-                  </span>
-                </span>
-                <span className="project-entry__description">
-                  {project.data.description}
-                </span>
-              </Link>
-            ))}
-          </div>
+          <ProjectList projects={projects} showStack />
         </section>
       </div>
     </main>

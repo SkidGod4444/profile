@@ -151,3 +151,123 @@ export function BlogPostingSchema({
     </>
   );
 }
+
+export function ProjectSchema({
+  title,
+  description,
+  url,
+  liveUrl,
+  repo,
+  stack,
+  year,
+}: {
+  title: string;
+  description?: string;
+  url: string;
+  liveUrl: string;
+  repo?: string;
+  stack: string[];
+  year: string;
+}) {
+  const absoluteUrl = `${siteConfig.url}${url}`;
+
+  return (
+    <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareSourceCode",
+          name: title,
+          description,
+          url: liveUrl,
+          codeRepository: repo,
+          programmingLanguage: stack,
+          dateCreated: year,
+          mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl },
+          image: `${absoluteUrl}/opengraph-image`,
+          inLanguage: "en",
+          author: { "@id": personId },
+          isPartOf: { "@id": websiteId },
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: siteConfig.name,
+              item: siteConfig.url,
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Projects",
+              item: `${siteConfig.url}/projects`,
+            },
+            { "@type": "ListItem", position: 3, name: title },
+          ],
+        }}
+      />
+    </>
+  );
+}
+
+export function EventSchema({
+  name,
+  description,
+  startDate,
+  endDate,
+  url,
+  image,
+  city,
+  country,
+  isOnline,
+  isFree,
+}: {
+  name: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  url: string;
+  image?: string | null;
+  city?: string | null;
+  country?: string | null;
+  isOnline: boolean;
+  isFree: boolean;
+}) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "Event",
+        name,
+        description,
+        startDate,
+        endDate,
+        url,
+        image: image ?? undefined,
+        eventStatus: "https://schema.org/EventScheduled",
+        eventAttendanceMode: isOnline
+          ? "https://schema.org/OnlineEventAttendanceMode"
+          : "https://schema.org/OfflineEventAttendanceMode",
+        location: isOnline
+          ? { "@type": "VirtualLocation", url }
+          : {
+              "@type": "Place",
+              name: city ?? undefined,
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: city ?? undefined,
+                addressCountry: country ?? undefined,
+              },
+            },
+        isAccessibleForFree: isFree,
+        organizer: { "@id": personId },
+        performer: { "@id": personId },
+      }}
+    />
+  );
+}

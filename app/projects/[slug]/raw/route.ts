@@ -54,6 +54,9 @@ export async function GET(
       : []),
     `- Live: ${project.data.url}`,
     ...(project.data.repo ? [`- Source: ${project.data.repo}`] : []),
+    ...project.data.media.map(
+      (item) => `- Media: ${item.src}${item.caption ? ` — ${item.caption}` : ""}`,
+    ),
     "",
     body,
   ].join("\n");
