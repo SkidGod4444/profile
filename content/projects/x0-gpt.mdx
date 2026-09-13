@@ -7,3 +7,9 @@ stack: [TypeScript]
 year: "2024"
 order: 2
 ---
+
+x0-GPT lets you talk to a website, a PDF, a CSV or your own notes in plain language. Paste a link or upload a file, then ask questions about it. It is free, and anyone can use it.
+
+Under the hood it is retrieval-augmented generation. Content is split into chunks and embedded into Upstash Vector. Each answer is generated from the chunks that match the question, so the model works from the document rather than from memory. Chat history lives in Upstash Redis and app data in Supabase. It works with almost any model provider.
+
+Built with Next.js 14, TypeScript, Tailwind CSS, shadcn/ui, Supabase and Upstash. It can be self-hosted: clone the repo, add the keys, run it with bun.

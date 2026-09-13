@@ -7,3 +7,9 @@ stack: [TypeScript]
 year: "2025"
 order: 3
 ---
+
+Prexo is a set of AI agents for sales and customer support, built to run on free tiers. Follow the documentation closely and the whole service runs almost entirely for free.
+
+It is a monorepo: a web app, a console, an API, docs and a changelog, with shared packages for agents, the database, caching, keys and logging underneath.
+
+The public piece is `@prexo/ai-chat-sdk`, an npm package for building chat applications. It gives you persistent message history in memory or Redis, vector context from an external or built-in vector database, and telemetry. It is TypeScript-first, modular, tree-shakeable and has no runtime dependencies.

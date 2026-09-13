@@ -7,3 +7,27 @@ stack: [Rust]
 year: "2026"
 order: 1
 ---
+
+Sapient is an inference engine written in pure Rust. It runs language, vision and speech models on the machine you already have. No Python, no Docker, no CUDA.
+
+## What it does
+
+One command installs it. One line runs a model.
+
+`sapient chat` opens a streaming chat in the terminal, with replies rendered as Markdown as they arrive. `sapient transcribe` turns audio into text with Whisper. `sapient speak` reads text aloud with Kokoro or Orpheus. `sapient vision` answers questions about an image, fully on device.
+
+The voice mode is a streaming loop. Speech is transcribed while you are still talking, the reply starts speaking after its first clause, and you can interrupt it mid-sentence.
+
+It also serves an OpenAI-compatible HTTP endpoint, so existing clients can point at it without changes.
+
+## Where it runs
+
+macOS, Linux, Windows and 64-bit Raspberry Pi. There are CPU builds for every platform, a Metal build for Apple Silicon, and a wgpu build that uses Intel, AMD and Nvidia GPUs through Vulkan or DirectX 12. The installer picks the right one.
+
+On small boards a thermal governor sheds work as the chip heats, so sustained decoding does not collapse on passive cooling.
+
+## Using it from code
+
+The engine is a Rust crate. `Pipeline::from_pretrained` downloads, caches and runs a model with no configuration, and the same object handles chat, streaming and custom sampling.
+
+The same crate is exposed to Swift, Kotlin and TypeScript through UniFFI, so an iOS, Android or React Native app can run a model on device with the GPU by default.
