@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { formatLumaWhen, getLumaHostedEvents } from "./luma";
 import { siteConfig, type Segment } from "./site-config";
 import {
   formatPostDate,
@@ -98,18 +99,29 @@ export function projectsMarkdown() {
   ].join("\n");
 }
 
-export function talksMarkdown() {
+export async function talksMarkdown() {
+  const events = await getLumaHostedEvents();
   const { talks } = siteConfig;
+
+  const lines = [
+    ...events.map(
+      (event) =>
+        `- **${event.name}** — ${formatLumaWhen(event)}${
+          event.isOnline ? ", online" : event.city ? `, ${event.city}` : ""
+        } · [Luma](${event.url})`,
+    ),
+    ...talks.map(
+      (talk) =>
+        `- **${talk.title}** — ${talk.event}, ${talk.date} · [proof](${talk.href})`,
+    ),
+  ];
 
   return [
     `# Talks — ${siteConfig.name}`,
     "",
-    ...(talks.length === 0
-      ? ["None listed yet."]
-      : talks.map(
-          (talk) =>
-            `- **${talk.title}** — ${talk.event}, ${talk.date} · [proof](${talk.href})`,
-        )),
+    `Events hosted on Luma: ${siteConfig.luma.profile}`,
+    "",
+    ...(lines.length === 0 ? ["None listed right now."] : lines),
     "",
   ].join("\n");
 }
@@ -175,7 +187,7 @@ export async function fullMarkdown() {
     projectsMarkdown(),
     "---",
     "",
-    talksMarkdown(),
+    await talksMarkdown(),
     "---",
     "",
     `# Writing — full text`,

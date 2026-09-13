@@ -1,9 +1,10 @@
 import { talksMarkdown } from "@/lib/markdown";
 
-export const dynamic = "force-static";
+/* Prerendered, then refreshed hourly as Luma changes — see lib/luma.ts. */
+export const revalidate = 3600;
 
-export function GET() {
-  return new Response(talksMarkdown(), {
+export async function GET() {
+  return new Response(await talksMarkdown(), {
     headers: {
       "Content-Type": "text/markdown; charset=utf-8",
       "Cache-Control": "public, max-age=0, s-maxage=3600",

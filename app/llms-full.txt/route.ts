@@ -6,6 +6,8 @@ import { fullMarkdown } from "@/lib/markdown";
  * request rather than crawling page by page.
  */
 export const dynamic = "force-static";
+/* Embeds the Luma-backed talks list, so it refreshes on the same clock. */
+export const revalidate = 3600;
 
 export async function GET() {
   return new Response(await fullMarkdown(), {

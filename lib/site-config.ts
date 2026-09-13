@@ -116,13 +116,26 @@ export const siteConfig = {
   ],
 
   /**
-   * Talks and workshops, newest first, each pointing at proof — a recording,
-   * a write-up, a photo set or a certificate.
+   * Public events, read live from Luma. `calendar` is the personal calendar
+   * behind luma.com/user/<username>. Luma has no username-to-calendar lookup,
+   * so it is pinned here: it is `calendar.api_id` in any of the user's event
+   * payloads (api.lu.ma/url?url=<event slug>).
+   */
+  luma: {
+    username: "itsdev",
+    profile: "https://luma.com/user/itsdev",
+    calendar: "cal-Cs4OOxep0sG0UHD",
+  },
+
+  /**
+   * Talks that are not on Luma, newest first, each pointing at proof — a
+   * recording, a write-up, a photo set or a certificate.
    */
   talks: [] as ReadonlyArray<{
     title: string;
     event: string;
     href: string;
+    /** ISO date. */
     date: string;
     note?: string;
   }>,
