@@ -1,4 +1,5 @@
 import { CalendarDays, MessageCircle } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Backdrop } from "@/components/backdrop";
 import { ProjectList } from "@/components/project-list";
@@ -8,12 +9,20 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { VisitCount } from "@/components/visit-count";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { pageMetadata } from "@/lib/seo";
 import { links, siteConfig } from "@/lib/site-config";
 import {
   formatPostDate,
   getPublishedPosts,
   getPublishedProjects,
 } from "@/lib/source";
+
+export const metadata: Metadata = pageMetadata({
+  title: `${siteConfig.name} — ${siteConfig.role}`,
+  absoluteTitle: true,
+  description: siteConfig.description,
+  path: "/",
+});
 
 const compactNumberFormatter = new Intl.NumberFormat("en", {
   maximumFractionDigits: 0,

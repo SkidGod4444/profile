@@ -22,7 +22,14 @@ export type Segment =
  * and are what the structured data advertises.
  */
 export const links = {
-  site: "https://saidev.codes",
+  /*
+   * Vercel serves the site on www and 308s the bare domain to it. The
+   * canonical host has to be the one that answers 200, or every canonical
+   * tag and sitemap entry points at a redirect and Google picks its own.
+   * To make the bare domain primary instead, flip the redirect in Vercel's
+   * domain settings and change this one line.
+   */
+  site: "https://www.saidev.codes",
   github: "https://github.com/SkidGod4444",
   /* Verified to resolve to github.com/SkidGod4444. Used for display; the
      canonical URL in `profiles` is what the structured data advertises. */
@@ -68,6 +75,18 @@ export const siteConfig = {
     "Sapient",
     "OpenHorizon Labs",
     "robotics",
+    "machine learning",
+  ],
+
+  /**
+   * Subjects for the Person schema's `knowsAbout`. Topics only — names and
+   * handles belong in `keywords`, not here.
+   */
+  expertise: [
+    "software engineering",
+    "open source",
+    "robotics",
+    "physical AI",
     "machine learning",
   ],
 

@@ -3,23 +3,15 @@ import Link from "next/link";
 import { Backdrop } from "@/components/backdrop";
 import { BlogSchema } from "@/components/structured-data";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { pageMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { formatPostDate, getPublishedPosts } from "@/lib/source";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Writing",
   description: `Blog posts and technical write-ups by ${siteConfig.name}.`,
-  alternates: {
-    canonical: "/writings",
-    types: { "application/rss+xml": `${siteConfig.url}/feed.xml` },
-  },
-  openGraph: {
-    type: "website",
-    url: `${siteConfig.url}/writings`,
-    title: `Writing — ${siteConfig.name}`,
-    description: `Blog posts and technical write-ups by ${siteConfig.name}.`,
-  },
-};
+  path: "/writings",
+});
 
 export default function BlogIndexPage() {
   const posts = getPublishedPosts();

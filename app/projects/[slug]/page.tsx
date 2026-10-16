@@ -8,6 +8,7 @@ import { PostToc } from "@/components/post-toc";
 import { ProjectMedia } from "@/components/project-media";
 import { ProjectSchema } from "@/components/structured-data";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { pageMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 import { getPublishedProjects, projects } from "@/lib/source";
@@ -28,22 +29,11 @@ export async function generateMetadata({
     return {};
   }
 
-  return {
+  return pageMetadata({
     title: project.data.title,
-    description: project.data.description,
-    alternates: { canonical: project.url },
-    openGraph: {
-      type: "website",
-      url: `${siteConfig.url}${project.url}`,
-      title: project.data.title,
-      description: project.data.description,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: project.data.title,
-      description: project.data.description,
-    },
-  };
+    description: project.data.description ?? siteConfig.description,
+    path: project.url,
+  });
 }
 
 function Fact({
@@ -116,6 +106,7 @@ export default async function ProjectPage({ params }: PageProps) {
         repo={project.data.repo}
         stack={project.data.stack}
         year={project.data.year}
+        updated={project.data.updated}
       />
       <Backdrop />
       <ThemeToggle />

@@ -13,6 +13,8 @@ export const blogPosts = defineCollections({
   dir: "content/writings",
   schema: pageSchema.extend({
     date: z.string().date().or(z.date()),
+    /** Set when a post is materially revised; feeds dateModified and the sitemap. */
+    updated: z.string().date().or(z.date()).optional(),
     // Lets a post sit in the repo without being listed or routed.
     draft: z.boolean().default(false),
   }),
@@ -33,6 +35,12 @@ export const projectPages = defineCollections({
     repo: z.string().optional(),
     stack: z.array(z.string()).default([]),
     year: z.string(),
+    /**
+     * Last real edit to the page, as an ISO date. Only emitted to the sitemap
+     * when set: a guessed date is worse than none, since Google stops
+     * trusting lastmod once it catches one that is wrong.
+     */
+    updated: z.string().date().or(z.date()).optional(),
     /**
      * Screenshots and demos, shown edge to edge under the facts. The kind is
      * read off `src`: YouTube links embed, .mp4/.webm/.mov play inline,

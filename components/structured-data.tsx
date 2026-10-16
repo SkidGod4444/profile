@@ -17,11 +17,39 @@ function JsonLd({ data }: { data: Record<string, unknown> }) {
 
 const personId = `${siteConfig.url}/#person`;
 const websiteId = `${siteConfig.url}/#website`;
+const blogId = `${siteConfig.url}/writings#blog`;
 const orgId = `${siteConfig.organization.url}/#organization`;
 
+/*
+ * References carry a name and URL alongside the `@id`. Search engines do not
+ * follow an `@id` to another page, so a bare `{ "@id" }` author on a post page
+ * is an author with no name, and the Article rich result fails validation.
+ */
+const personRef = {
+  "@type": "Person",
+  "@id": personId,
+  name: siteConfig.name,
+  url: siteConfig.url,
+};
+
+const websiteRef = {
+  "@type": "WebSite",
+  "@id": websiteId,
+  name: `${siteConfig.name} — ${siteConfig.role}`,
+  url: siteConfig.url,
+};
+
+const blogRef = {
+  "@type": "Blog",
+  "@id": blogId,
+  name: `Writing — ${siteConfig.name}`,
+  url: `${siteConfig.url}/writings`,
+};
+
 /**
- * Identity graph for the home page. `@id` lets the other schemas reference this
- * person rather than repeating it, which is what search engines expect.
+ * Identity graph for the home page. The Person sits inside a ProfilePage,
+ * which is the type Google reads for a personal site about one person; the
+ * other schemas reference the person by `@id` rather than repeating it.
  */
 export function PersonSchema() {
   return (
@@ -29,22 +57,30 @@ export function PersonSchema() {
       <JsonLd
         data={{
           "@context": "https://schema.org",
-          "@type": "Person",
-          "@id": personId,
-          name: siteConfig.name,
-          alternateName: "SkidGod",
+          "@type": "ProfilePage",
+          "@id": `${siteConfig.url}/#profile`,
           url: siteConfig.url,
-          image: `${siteConfig.url}${siteConfig.avatar.src}`,
-          jobTitle: siteConfig.role,
-          description: siteConfig.description,
-          sameAs: Object.values(siteConfig.profiles),
-          knowsAbout: siteConfig.keywords,
-          worksFor: { "@id": orgId },
-          // Declared on both sides: Person→founderOf and Organization→founder.
-          founderOf: { "@id": orgId },
-          address: {
-            "@type": "PostalAddress",
-            addressLocality: siteConfig.location,
+          name: `${siteConfig.name} — ${siteConfig.role}`,
+          inLanguage: "en",
+          isPartOf: { "@id": websiteId },
+          mainEntity: {
+            "@type": "Person",
+            "@id": personId,
+            name: siteConfig.name,
+            alternateName: "SkidGod",
+            url: siteConfig.url,
+            image: `${siteConfig.url}${siteConfig.avatar.src}`,
+            jobTitle: siteConfig.role,
+            description: siteConfig.description,
+            sameAs: Object.values(siteConfig.profiles),
+            knowsAbout: siteConfig.expertise,
+            worksFor: { "@id": orgId },
+            // Declared on both sides: Person→founderOf and Organization→founder.
+            founderOf: { "@id": orgId },
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: siteConfig.location,
+            },
           },
         }}
       />
@@ -55,7 +91,7 @@ export function PersonSchema() {
           "@id": orgId,
           name: siteConfig.organization.name,
           url: siteConfig.organization.url,
-          founder: { "@id": personId },
+          founder: personRef,
         }}
       />
       <JsonLd
@@ -67,7 +103,7 @@ export function PersonSchema() {
           name: `${siteConfig.name} — ${siteConfig.role}`,
           description: siteConfig.description,
           inLanguage: "en",
-          publisher: { "@id": personId },
+          publisher: personRef,
         }}
       />
     </>
@@ -80,14 +116,14 @@ export function BlogSchema() {
       data={{
         "@context": "https://schema.org",
         "@type": "Blog",
-        "@id": `${siteConfig.url}/writings#blog`,
+        "@id": blogId,
         url: `${siteConfig.url}/writings`,
         name: `Writing — ${siteConfig.name}`,
         description: `Blog posts and technical write-ups by ${siteConfig.name}.`,
         inLanguage: "en",
-        author: { "@id": personId },
-        publisher: { "@id": personId },
-        isPartOf: { "@id": websiteId },
+        author: personRef,
+        publisher: personRef,
+        isPartOf: websiteRef,
       }}
     />
   );
@@ -97,15 +133,18 @@ export function BlogPostingSchema({
   title,
   description,
   date,
+  updated,
   url,
 }: {
   title: string;
   description?: string;
   date: string | Date;
+  updated?: string | Date;
   url: string;
 }) {
   const absoluteUrl = `${siteConfig.url}${url}`;
   const published = new Date(date).toISOString();
+  const modified = new Date(updated ?? date).toISOString();
 
   return (
     <>
@@ -116,15 +155,14 @@ export function BlogPostingSchema({
           headline: title,
           description,
           datePublished: published,
-          // No edit history is tracked, so modified equals published.
-          dateModified: published,
+          dateModified: modified,
           url: absoluteUrl,
           mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl },
           image: `${absoluteUrl}/opengraph-image`,
           inLanguage: "en",
-          author: { "@id": personId },
-          publisher: { "@id": personId },
-          isPartOf: { "@id": `${siteConfig.url}/writings#blog` },
+          author: personRef,
+          publisher: personRef,
+          isPartOf: blogRef,
         }}
       />
       <JsonLd
@@ -160,6 +198,7 @@ export function ProjectSchema({
   repo,
   stack,
   year,
+  updated,
 }: {
   title: string;
   description?: string;
@@ -168,6 +207,7 @@ export function ProjectSchema({
   repo?: string;
   stack: string[];
   year: string;
+  updated?: string | Date;
 }) {
   const absoluteUrl = `${siteConfig.url}${url}`;
 
@@ -183,11 +223,12 @@ export function ProjectSchema({
           codeRepository: repo,
           programmingLanguage: stack,
           dateCreated: year,
+          dateModified: updated ? new Date(updated).toISOString() : undefined,
           mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl },
           image: `${absoluteUrl}/opengraph-image`,
           inLanguage: "en",
-          author: { "@id": personId },
-          isPartOf: { "@id": websiteId },
+          author: personRef,
+          isPartOf: websiteRef,
         }}
       />
       <JsonLd
@@ -265,8 +306,8 @@ export function EventSchema({
               },
             },
         isAccessibleForFree: isFree,
-        organizer: { "@id": personId },
-        performer: { "@id": personId },
+        organizer: personRef,
+        performer: personRef,
       }}
     />
   );

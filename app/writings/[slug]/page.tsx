@@ -6,6 +6,7 @@ import { Backdrop } from "@/components/backdrop";
 import { PostToc } from "@/components/post-toc";
 import { BlogPostingSchema } from "@/components/structured-data";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { pageMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { blog, formatPostDate, getPublishedPosts } from "@/lib/source";
 
@@ -25,24 +26,14 @@ export async function generateMetadata({
     return {};
   }
 
-  return {
+  return pageMetadata({
     title: post.data.title,
-    description: post.data.description,
-    alternates: { canonical: post.url },
-    openGraph: {
-      type: "article",
-      url: `${siteConfig.url}${post.url}`,
-      title: post.data.title,
-      description: post.data.description,
-      publishedTime: new Date(post.data.date).toISOString(),
-      authors: [siteConfig.name],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: post.data.title,
-      description: post.data.description,
-    },
-  };
+    description: post.data.description ?? siteConfig.description,
+    path: post.url,
+    type: "article",
+    publishedTime: new Date(post.data.date).toISOString(),
+    modifiedTime: new Date(post.data.updated ?? post.data.date).toISOString(),
+  });
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
@@ -63,6 +54,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         title={post.data.title}
         description={post.data.description}
         date={post.data.date}
+        updated={post.data.updated}
         url={post.url}
       />
       <Backdrop />

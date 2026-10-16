@@ -3,20 +3,15 @@ import Link from "next/link";
 import { Backdrop } from "@/components/backdrop";
 import { ProjectList } from "@/components/project-list";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { pageMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 import { getPublishedProjects } from "@/lib/source";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Projects",
   description: `Things ${siteConfig.name} has built.`,
-  alternates: { canonical: "/projects" },
-  openGraph: {
-    type: "website",
-    url: `${siteConfig.url}/projects`,
-    title: `Projects — ${siteConfig.name}`,
-    description: `Things ${siteConfig.name} has built.`,
-  },
-};
+  path: "/projects",
+});
 
 export default function ProjectsPage() {
   const projects = getPublishedProjects();

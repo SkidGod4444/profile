@@ -11,19 +11,14 @@ import {
   getLumaHostedEvents,
   type LumaEvent,
 } from "@/lib/luma";
+import { pageMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Talks",
   description: `Talks and workshops by ${siteConfig.name}.`,
-  alternates: { canonical: "/talks" },
-  openGraph: {
-    type: "website",
-    url: `${siteConfig.url}/talks`,
-    title: `Talks — ${siteConfig.name}`,
-    description: `Talks and workshops by ${siteConfig.name}.`,
-  },
-};
+  path: "/talks",
+});
 
 /*
  * Prerendered, then refreshed in the background so the guest count and the

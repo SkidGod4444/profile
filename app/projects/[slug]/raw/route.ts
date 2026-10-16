@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { markdownHeaders } from "@/lib/markdown";
 import { getPublishedProjects } from "@/lib/source";
 
 /*
@@ -62,9 +63,6 @@ export async function GET(
   ].join("\n");
 
   return new Response(markdown, {
-    headers: {
-      "Content-Type": "text/markdown; charset=utf-8",
-      "Cache-Control": "public, max-age=0, s-maxage=3600",
-    },
+    headers: markdownHeaders(project.url),
   });
 }

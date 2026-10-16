@@ -56,8 +56,12 @@ export const metadata: Metadata = {
   authors: [{ name: siteConfig.name, url: siteConfig.url }],
   creator: siteConfig.name,
   publisher: siteConfig.name,
+  /*
+   * No canonical here: `alternates` is replaced wholesale by any page that
+   * sets it, and a page that does not would otherwise inherit "/" as its
+   * canonical. Every indexable page sets its own through `pageMetadata`.
+   */
   alternates: {
-    canonical: "/",
     types: { "application/rss+xml": `${siteUrl}/feed.xml` },
   },
   openGraph: {
@@ -131,6 +135,11 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+        {/* rel="me" ties this site to the same accounts the Person schema
+            lists, which is how Mastodon and IndieWeb tools verify identity. */}
+        {Object.values(siteConfig.profiles).map((href) => (
+          <link rel="me" href={href} key={href} />
+        ))}
       </head>
       <body>
         <ThemeProvider>

@@ -16,6 +16,19 @@ import {
  * /index.md, the section .md routes, /llms.txt and /llms-full.txt.
  */
 
+/**
+ * Response headers for a Markdown mirror. The `Link: rel="canonical"` header
+ * is how a non-HTML response declares its HTML original, so search engines
+ * fold the mirror into the page it duplicates instead of indexing both.
+ */
+export function markdownHeaders(canonicalPath: string) {
+  return {
+    "Content-Type": "text/markdown; charset=utf-8",
+    "Cache-Control": "public, max-age=0, s-maxage=3600",
+    Link: `<${siteConfig.url}${canonicalPath === "/" ? "" : canonicalPath}>; rel="canonical"`,
+  };
+}
+
 /** Segment prose (`now`, `past`, `footer`) into Markdown with inline links. */
 export function segmentsToMarkdown(segments: readonly Segment[]) {
   return segments

@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { markdownHeaders } from "@/lib/markdown";
 import { getPublishedPosts } from "@/lib/source";
 
 /*
@@ -41,10 +42,7 @@ export async function GET(
     const body = `# ${post.data.title}\n\n${stripFrontmatter(source)}`;
 
     return new Response(body, {
-      headers: {
-        "Content-Type": "text/markdown; charset=utf-8",
-        "Cache-Control": "public, max-age=0, s-maxage=3600",
-      },
+      headers: markdownHeaders(post.url),
     });
   } catch {
     return new Response("Not found", { status: 404 });
