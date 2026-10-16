@@ -64,7 +64,7 @@ Llama-1B went from 1.3 to 8.3 tokens a second on the same board. The 3B went fro
 
 That code path had been there since quantised loading landed on 29 May. Nothing flagged it, because a slow Pi looks normal.
 
-If your thing is slow, do not assume it is the hardware. Profile it. I lost five weeks of Pi performance to that assumption.
+If your thing is slow, do not assume it is the hardware. Profile it. I lost five weeks of Pi performance to it.
 
 ## Make the engine watch the thermometer
 
@@ -126,7 +126,7 @@ You are going to ask.
 
 It is faster. On an Apple M4 with Metal, Llama-3.2-1B decodes at 90.6 tokens a second in Sapient and 111.3 in llama.cpp. Same file, same session. I publish the table.
 
-What Sapient is: chat, speech and vision in one 17 MB binary that installs with one command and runs on the Pi, the laptop and the Jetson from the same model name.
+What Sapient is: chat, speech and vision in one binary, an 8 MB download, that installs with one command and runs on the Pi, the laptop and the Jetson from the same model name.
 
 No daemon. No runtime. No container.
 
