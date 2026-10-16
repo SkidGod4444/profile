@@ -1,0 +1,141 @@
+---
+title: No Python, no Docker, no CUDA
+description: What it took to run language, vision and speech models from one Rust binary on the machine you already have.
+date: 2026-10-16
+---
+
+I made the first commit to Sapient on 24 May 2026.
+
+The first release shipped the same day.
+
+Since then: 583 commits, 52 releases, and one rule that never moved.
+
+No Python. No Docker. No CUDA.
+
+## What the rule buys you
+
+[Sapient](https://sapient.openhorizon.so) is an inference engine written in Rust.
+
+It runs language, vision and speech models on the machine you already have.
+
+One command installs it. One line runs a model.
+
+The whole thing is one binary. The CPU build is about 17 MB on disk. It was 50 MB until Kokoro's dictionaries moved out of it.
+
+No daemon. No runtime to install first. No container to pull.
+
+The same model alias runs on a MacBook, a Raspberry Pi 5 and a Jetson. The installer picks the build.
+
+The kernels are Rust. A few dependencies still carry C: the tokenizer's regex engine, TLS, and Apple's MLX in the Metal build. I say pure Rust because that is where the inference happens.
+
+## What it is not
+
+It is not the fastest decoder.
+
+llama.cpp is ahead on raw tokens per second, and I publish the numbers that show it.
+
+On an Apple M4 with Metal, Llama-3.2-1B decodes at 90.6 tokens a second in Sapient. llama.cpp does 111.3 on the same file.
+
+Sapient's case is breadth. Chat, speech and vision in one self-contained binary.
+
+`sapient chat` opens a streaming chat in the terminal, with replies rendered as Markdown as they arrive.
+
+`sapient transcribe` turns audio into text with Whisper.
+
+`sapient speak` reads text aloud with Kokoro or Orpheus.
+
+`sapient see` answers questions about an image, fully on device.
+
+`sapient serve` is an OpenAI-compatible endpoint, so the client you already have points at localhost.
+
+## The bug that made the Pi usable
+
+Until July, Llama-3.2-1B ran at 1.3 tokens a second on a Raspberry Pi 5.
+
+That is not a chat. That is a typewriter.
+
+The cause was one code path. The engine dequantised the entire embedding table on every decode step.
+
+Llama-1B ties its embedding to a 128k-token vocabulary. That is about 0.8 GB of dequantisation per token, to read one row.
+
+Embedding lookup became row-wise. Only the tokens you process get dequantised.
+
+Llama-1B went from 1.3 to 8.3 tokens a second on the same board. The 3B went from 0.8 to 3.4.
+
+Later kernel work took the 1B to 11.6.
+
+1B-class chat on a Pi 5 is interactive now. Even 3B is usable.
+
+## The governor
+
+Sustained decode pins all four cores of a Pi.
+
+On a passively cooled board the chip reaches the 85 °C firmware trip and every core hard-throttles. Throughput collapses, then oscillates.
+
+So the engine watches the temperature itself.
+
+It samples `/sys/class/thermal` twice a second during inference. From 80 °C it steps decode parallelism down one core at a time, never below half the cores. Below 70 °C it gives the cores back.
+
+Backing off before the trip point keeps the clocks up. Throughput degrades gracefully instead of falling off a cliff.
+
+To test it I forced the threshold inside the board's normal plateau, at 72 °C.
+
+Decode stepped down within seconds, from 8.70 to 8.23 tokens a second, and held there for the rest of a six-minute soak.
+
+Five percent slower for a quarter of the cores.
+
+Shedding cores on a Pi is nearly free in tokens per second, because decode there is bound by memory latency, not compute. It is not free in package power. That is the trade.
+
+The same governor ships in the mobile SDKs. The engine sheds decode threads as the phone heats.
+
+## The voice loop
+
+`sapient converse --speak` is a streaming loop.
+
+Speech is transcribed while you are still talking. The reply starts speaking after its first clause. You can interrupt it mid-sentence.
+
+That took perceived reply latency from about 4.4 seconds to about 2.4 on an M-series Mac.
+
+The first version on a real microphone had a problem. The replies interrupted themselves.
+
+The speaker played the reply, the microphone heard it, and the barge-in detector decided a human had started talking.
+
+The fix: the speaker tracks its own playback envelope. Anything that matches it is the machine. Anything that does not is you.
+
+On a Pi 5 the honest sequential numbers for one turn with a 0.5B model are 2.96 seconds of transcription, 3.5 seconds of language model and 5.4 seconds of speech synthesis.
+
+Kokoro is the slow stage. 2.4 times slower than real time on that CPU.
+
+Streaming hides most of that in live use, because speech starts at the first clause. It does not hide all of it.
+
+Sub-second voice replies on a Pi are still in progress.
+
+## 106 billion parameters, zero CUDA
+
+Sparse mixture-of-experts models run on a Jetson AGX Thor's CPU.
+
+Mixtral-8x7B is 47 billion parameters and about 26 GB as a 4-bit file. It decodes at 5.5 tokens a second, memory-mapped, with resident memory about the size of the file.
+
+llama.cpp does 9.95 on the same file. I publish that too.
+
+GLM-4.5-Air is 106 billion parameters. The first load peaked at 118 GB of RAM on a 122 GB machine, because 24 of its tensors used a quant format the engine could not keep packed, so they expanded to full 32-bit floats.
+
+Now those re-quantise to 8-bit at load. Peak RAM went from 118 GB to 72 GB, decode got 32% faster, and the model fits a 96 GB device.
+
+## What I got wrong
+
+The README said "zero quality loss".
+
+It was not literally true. I had never measured it.
+
+When I built a perplexity gate that scores exactly what llama.cpp scores, Sapient came out 0.1 to 0.4% worse than llama.cpp on the same files.
+
+The first set of quality numbers was wrong too. Two protocol bugs. The second set is the one in the repo.
+
+Llama-1B still carries a 0.28% gap I cannot explain.
+
+The hybrid build, the default install, keeps the weights twice. Once for the GPU, once for the CPU. A user reported a 4.8 GB model holding twice its file size once loaded, and 3.4 times while loading.
+
+That took a release to fix. The two copies are still there.
+
+It is not the fastest. It is the one that runs where you are.
