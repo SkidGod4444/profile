@@ -1,141 +1,137 @@
 ---
 title: No Python, no Docker, no CUDA
-description: What it took to run language, vision and speech models from one Rust binary on the machine you already have.
+description: Five months of building a Rust inference engine for the Pi inside a robot, including the bug I shipped for five weeks without noticing.
 date: 2026-10-16
 ---
 
-I made the first commit to Sapient on 24 May 2026.
+I wanted a robot that could hear me, think, and talk back, with no uplink.
 
-The first release shipped the same day.
+Not a demo on a laptop. The Pi inside the chassis.
 
-Since then: 583 commits, 52 releases, and one rule that never moved.
+The tools for that mostly want a Python environment, a container, or CUDA. A Pi inside a robot has none of those.
 
-No Python. No Docker. No CUDA.
+So on 24 May 2026 I started writing my own engine. In Rust.
 
-## What the rule buys you
+This is what the next five months looked like. The parts that worked, and the parts I would rather not tell you.
 
-[Sapient](https://sapient.openhorizon.so) is an inference engine written in Rust.
+## Day one
 
-It runs language, vision and speech models on the machine you already have.
+The first commit and the first release were the same day.
 
-One command installs it. One line runs a model.
+Install script. Checksums. Cross-compiling for ARM. A release pipeline that built for macOS, Linux and Windows before the thing could do anything useful.
 
-The whole thing is one binary. The CPU build is about 17 MB on disk. It was 50 MB until Kokoro's dictionaries moved out of it.
+It could not run a model yet.
 
-No daemon. No runtime to install first. No container to pull.
+Real CPU inference landed the next day, in v0.1.2. The first chat output was not coherent. The fix for that is also from day two.
 
-The same model alias runs on a MacBook, a Raspberry Pi 5 and a Jetson. The installer picks the build.
+I am telling you this because every polished project you look up to started as a binary that printed garbage.
 
-The kernels are Rust. A few dependencies still carry C: the tokenizer's regex engine, TLS, and Apple's MLX in the Metal build. I say pure Rust because that is where the inference happens.
+## Day six
 
-## What it is not
+29 May. Five releases in one day.
 
-It is not the fastest decoder.
+Quantised GGUF loading, so memory matched the file size instead of expanding to 32-bit floats. Then SIMD and threads, 4.7 times faster. Then Metal for Apple Silicon. Then memory-mapped loading, for models bigger than RAM.
 
-llama.cpp is ahead on raw tokens per second, and I publish the numbers that show it.
+Within two weeks it had ears and a voice. Whisper on 2 June. Kokoro text-to-speech on 3 June.
 
-On an Apple M4 with Metal, Llama-3.2-1B decodes at 90.6 tokens a second in Sapient. llama.cpp does 111.3 on the same file.
+Alongside that, a GPU path that runs on Intel, AMD and Nvidia through Vulkan. Because the one thing a robot never has is the exact GPU you developed on.
 
-Sapient's case is breadth. Chat, speech and vision in one self-contained binary.
+## The release that ran out of memory
 
-`sapient chat` opens a streaming chat in the terminal, with replies rendered as Markdown as they arrive.
+v0.4.4. 5 June.
 
-`sapient transcribe` turns audio into text with Whisper.
+On a 16 GB MacBook, a 1.5B model through that GPU path held 6.8 GiB of weights on the GPU and peaked at 14.7 GB of process memory.
 
-`sapient speak` reads text aloud with Kokoro or Orpheus.
+It ran out of memory and returned empty replies. I shipped it.
 
-`sapient see` answers questions about an image, fully on device.
+v0.5.0 kept the weights quantised on the GPU and dequantised them inside the shaders. 1.06 GiB resident. 3.6 GB peak. It worked.
 
-`sapient serve` is an OpenAI-compatible endpoint, so the client you already have points at localhost.
+The same binary ran on a Jetson AGX Thor through Vulkan. Zero CUDA, zero JetPack. 2.2 tokens a second on the CPU became 10 on the GPU.
 
-## The bug that made the Pi usable
+That was the first time "no CUDA" was true on Nvidia hardware and not just a line on a website.
+
+## The bug I shipped for five weeks
 
 Until July, Llama-3.2-1B ran at 1.3 tokens a second on a Raspberry Pi 5.
 
 That is not a chat. That is a typewriter.
 
-The cause was one code path. The engine dequantised the entire embedding table on every decode step.
+Then an audit found the engine dequantising the entire embedding table on every generated token. Llama-1B ties its embedding to a 128k-token vocabulary. About 0.8 GB of dequantisation per token, to read one row.
 
-Llama-1B ties its embedding to a 128k-token vocabulary. That is about 0.8 GB of dequantisation per token, to read one row.
+Embedding lookup became row-wise.
 
-Embedding lookup became row-wise. Only the tokens you process get dequantised.
+Llama-1B went from 1.3 to 8.3 tokens a second on the same board. The 3B went from 0.8 to 3.4. Even the MacBook's CPU path went from 6.6 to 38.7.
 
-Llama-1B went from 1.3 to 8.3 tokens a second on the same board. The 3B went from 0.8 to 3.4.
+That code path had been there since quantised loading landed on 29 May. Nothing flagged it, because a slow Pi looks normal.
 
-Later kernel work took the 1B to 11.6.
+If your thing is slow, do not assume it is the hardware. Profile it. I lost five weeks of Pi performance to that assumption.
 
-1B-class chat on a Pi 5 is interactive now. Even 3B is usable.
-
-## The governor
+## Make the engine watch the thermometer
 
 Sustained decode pins all four cores of a Pi.
 
-On a passively cooled board the chip reaches the 85 °C firmware trip and every core hard-throttles. Throughput collapses, then oscillates.
+On passive cooling the chip reaches the 85 °C firmware trip and every core hard-throttles. Throughput collapses, then oscillates.
 
-So the engine watches the temperature itself.
-
-It samples `/sys/class/thermal` twice a second during inference. From 80 °C it steps decode parallelism down one core at a time, never below half the cores. Below 70 °C it gives the cores back.
-
-Backing off before the trip point keeps the clocks up. Throughput degrades gracefully instead of falling off a cliff.
+So the engine samples the temperature twice a second. From 80 °C it drops one core at a time, never below half. Below 70 °C it gives them back.
 
 To test it I forced the threshold inside the board's normal plateau, at 72 °C.
 
-Decode stepped down within seconds, from 8.70 to 8.23 tokens a second, and held there for the rest of a six-minute soak.
+Decode went from 8.70 to 8.23 tokens a second within seconds, and held there for the rest of a six-minute soak.
 
-Five percent slower for a quarter of the cores.
+Five percent slower for a quarter of the cores. Decode on a Pi is bound by memory latency, not compute, so you pay in package power, not tokens.
 
-Shedding cores on a Pi is nearly free in tokens per second, because decode there is bound by memory latency, not compute. It is not free in package power. That is the trade.
+The same governor ships in the phone SDKs now. The engine sheds threads as the phone heats.
 
-The same governor ships in the mobile SDKs. The engine sheds decode threads as the phone heats.
+## The voice loop that interrupted itself
 
-## The voice loop
+Here is the part that was for the robot.
 
-`sapient converse --speak` is a streaming loop.
+`sapient converse --speak`. Speech is transcribed while you are still talking. The reply starts speaking after its first clause. You can cut it off mid-sentence.
 
-Speech is transcribed while you are still talking. The reply starts speaking after its first clause. You can interrupt it mid-sentence.
+Perceived latency went from about 4.4 seconds to about 2.4 on a Mac.
 
-That took perceived reply latency from about 4.4 seconds to about 2.4 on an M-series Mac.
+The first time it ran on a real microphone, the replies interrupted themselves.
 
-The first version on a real microphone had a problem. The replies interrupted themselves.
-
-The speaker played the reply, the microphone heard it, and the barge-in detector decided a human had started talking.
+The speaker played the reply. The microphone heard it. The barge-in detector decided a human had started talking, and stopped the reply. Over and over.
 
 The fix: the speaker tracks its own playback envelope. Anything that matches it is the machine. Anything that does not is you.
 
-On a Pi 5 the honest sequential numbers for one turn with a 0.5B model are 2.96 seconds of transcription, 3.5 seconds of language model and 5.4 seconds of speech synthesis.
+Now the honest number. On a Pi 5, one turn with a 0.5B model is 2.96 seconds of transcription, 3.5 seconds of language model and 5.4 seconds of speech synthesis, run in sequence.
 
-Kokoro is the slow stage. 2.4 times slower than real time on that CPU.
+Streaming hides most of that, because speech starts at the first clause. It does not hide all of it.
 
-Streaming hides most of that in live use, because speech starts at the first clause. It does not hide all of it.
+Sub-second voice on a Pi is the thing I am still working on.
 
-Sub-second voice replies on a Pi are still in progress.
+## Bugs I want you to know about
 
-## 106 billion parameters, zero CUDA
+phi-4-mini on Metal answered everything with "mememe". One bit of a 5-bit quant was read from the wrong byte.
 
-Sparse mixture-of-experts models run on a Jetson AGX Thor's CPU.
+A sliding-window model was coherent for about 490 tokens, then garbage. A NaN in flash attention that would have bitten every sliding-window model.
 
-Mixtral-8x7B is 47 billion parameters and about 26 GB as a 4-bit file. It decodes at 5.5 tokens a second, memory-mapped, with resident memory about the size of the file.
+The `say` command ran the vision command.
 
-llama.cpp does 9.95 on the same file. I publish that too.
+The download bar crawled to 8% and jumped to done, because it counted every quant in the repository.
 
-GLM-4.5-Air is 106 billion parameters. The first load peaked at 118 GB of RAM on a 122 GB machine, because 24 of its tensors used a quant format the engine could not keep packed, so they expanded to full 32-bit floats.
+A user reported a 4.8 GB model holding twice its size in memory on the default build. They were right. 3.4 times while loading.
 
-Now those re-quantise to 8-bit at load. Peak RAM went from 118 GB to 72 GB, decode got 32% faster, and the model fits a 96 GB device.
+The README said "zero quality loss". I had never measured it. When I built a perplexity gate that scores exactly what llama.cpp scores, Sapient came out 0.1 to 0.4% worse on the same files.
 
-## What I got wrong
+My first set of quality numbers was wrong too. Two protocol bugs.
 
-The README said "zero quality loss".
+Every one of these is in the changelog. Negative results stay in.
 
-It was not literally true. I had never measured it.
+## So, why not llama.cpp?
 
-When I built a perplexity gate that scores exactly what llama.cpp scores, Sapient came out 0.1 to 0.4% worse than llama.cpp on the same files.
+You are going to ask.
 
-The first set of quality numbers was wrong too. Two protocol bugs. The second set is the one in the repo.
+It is faster. On an Apple M4 with Metal, Llama-3.2-1B decodes at 90.6 tokens a second in Sapient and 111.3 in llama.cpp. Same file, same session. I publish the table.
 
-Llama-1B still carries a 0.28% gap I cannot explain.
+What Sapient is: chat, speech and vision in one 17 MB binary that installs with one command and runs on the Pi, the laptop and the Jetson from the same model name.
 
-The hybrid build, the default install, keeps the weights twice. Once for the GPU, once for the CPU. A user reported a 4.8 GB model holding twice its file size once loaded, and 3.4 times while loading.
+No daemon. No runtime. No container.
 
-That took a release to fix. The two copies are still there.
+I cannot give you a grand reason for Rust. I can tell you what one binary bought me. A thing I can copy onto a robot and trust to start.
+
+[Sapient](https://sapient.openhorizon.so) is 583 commits and 52 releases in, as of today.
 
 It is not the fastest. It is the one that runs where you are.
