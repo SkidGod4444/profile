@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site-config";
-import { getPublishedPosts, getPublishedProjects } from "@/lib/source";
+import {
+  getPublishedPapers,
+  getPublishedPosts,
+  getPublishedProjects,
+} from "@/lib/source";
 
 /** Newest of a list of ISO dates, or undefined when nothing carries one. */
 function latest(dates: Array<string | Date | undefined>) {
@@ -22,6 +26,7 @@ function latest(dates: Array<string | Date | undefined>) {
 export default function sitemap(): MetadataRoute.Sitemap {
   const posts = getPublishedPosts();
   const projects = getPublishedProjects();
+  const papers = getPublishedPapers();
   const base = siteConfig.url;
 
   return [
@@ -38,6 +43,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.9,
     },
+    {
+      url: `${base}/papers`,
+      lastModified: latest(papers.map((paper) => paper.data.updated ?? paper.data.date)),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
     { url: `${base}/talks`, changeFrequency: "weekly", priority: 0.6 },
     ...projects.map((project) => ({
       url: `${base}${project.url}`,
@@ -46,6 +57,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
         : undefined,
       changeFrequency: "yearly" as const,
       priority: 0.7,
+    })),
+    ...papers.map((paper) => ({
+      url: `${base}${paper.url}`,
+      lastModified: new Date(paper.data.updated ?? paper.data.date),
+      changeFrequency: "yearly" as const,
+      priority: 0.6,
     })),
     ...posts.map((post) => ({
       url: `${base}${post.url}`,

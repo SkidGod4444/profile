@@ -1,4 +1,4 @@
-import { blogPosts, projectPages } from "collections/server";
+import { blogPosts, paperPages, projectPages } from "collections/server";
 import { loader } from "fumadocs-core/source";
 import { toFumadocsSource } from "fumadocs-mdx/runtime/server";
 
@@ -59,4 +59,24 @@ export function getPublishedProjects() {
     .getPages()
     .filter((page) => !page.data.draft)
     .sort((a, b) => a.data.order - b.data.order);
+}
+
+/* ------------------------------------------------------------------ papers */
+
+export const papers = loader({
+  baseUrl: "/papers",
+  source: toFumadocsSource(paperPages, []),
+});
+
+export type PaperPage = ReturnType<typeof papers.getPages>[number];
+
+/** Published papers, most recently added first. */
+export function getPublishedPapers() {
+  return papers
+    .getPages()
+    .filter((page) => !page.data.draft)
+    .sort(
+      (a, b) =>
+        new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
+    );
 }

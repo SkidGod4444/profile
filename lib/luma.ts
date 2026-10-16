@@ -9,6 +9,19 @@ import { siteConfig } from "./site-config";
 
 export const lumaRevalidate = 3600;
 
+/*
+ * Luma answers 429 "rate limit" to the calendar endpoint whenever the
+ * User-Agent is Node's default ("node"), which is what Vercel's runtime sends.
+ * The event endpoint does not care, which is why the talks page silently
+ * showed nothing rather than failing: the listing came back empty and every
+ * hourly revalidation hit the same wall. A descriptive agent string is
+ * accepted, and names the site so Luma can see who is asking.
+ */
+const lumaHeaders = {
+  Accept: "application/json",
+  "User-Agent": `Mozilla/5.0 (compatible; saidev.codes; +${siteConfig.url})`,
+};
+
 export type LumaEvent = {
   name: string;
   url: string;
@@ -93,7 +106,7 @@ export async function getLumaEvent(slug: string): Promise<LumaEvent | null> {
     const response = await fetch(
       `https://api.lu.ma/url?${new URLSearchParams({ url: slug })}`,
       {
-        headers: { Accept: "application/json" },
+        headers: lumaHeaders,
         next: { revalidate: lumaRevalidate },
         signal: AbortSignal.timeout(10_000),
       },
@@ -204,12 +217,14 @@ async function listCalendar(period: "future" | "past") {
     }
 
     const response = await fetch(`https://api.lu.ma/calendar/get-items?${params}`, {
-      headers: { Accept: "application/json" },
+      headers: lumaHeaders,
       next: { revalidate: lumaRevalidate },
       signal: AbortSignal.timeout(10_000),
     });
 
     if (!response.ok) {
+      // Surfaced in the build and function logs; the page itself degrades.
+      console.warn(`Luma calendar (${period}) answered ${response.status}`);
       break;
     }
 

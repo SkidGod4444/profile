@@ -4,6 +4,7 @@ import { formatLumaWhen, getLumaHostedEvents } from "./luma";
 import { siteConfig, type Segment } from "./site-config";
 import {
   formatPostDate,
+  getPublishedPapers,
   getPublishedPosts,
   getPublishedProjects,
 } from "./source";
@@ -112,6 +113,22 @@ export function projectsMarkdown() {
   ].join("\n");
 }
 
+export function papersMarkdown() {
+  const papers = getPublishedPapers();
+
+  return [
+    `# Papers — ${siteConfig.name}`,
+    "",
+    ...(papers.length === 0
+      ? ["None listed right now."]
+      : papers.map(
+          (paper) =>
+            `- **${paper.data.title}** (${[paper.data.year, paper.data.venue].filter(Boolean).join(", ")}) — ${paper.data.description ?? ""} · [paper](${paper.data.url}) · [notes](${siteConfig.url}${paper.url}/raw)`,
+        )),
+    "",
+  ].join("\n");
+}
+
 export async function talksMarkdown() {
   const events = await getLumaHostedEvents();
   const { talks } = siteConfig;
@@ -198,6 +215,9 @@ export async function fullMarkdown() {
     "---",
     "",
     projectsMarkdown(),
+    "---",
+    "",
+    papersMarkdown(),
     "---",
     "",
     await talksMarkdown(),

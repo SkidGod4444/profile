@@ -34,13 +34,14 @@ sidebar and palette, and this site renders posts in its own layout. `<Mdx />`
 gets no `components` prop, so MDX emits plain `h2`/`p`/`pre` that `.prose` in
 `globals.css` styles.
 
-Two collections, both declared in `source.config.ts` and loaded in
+Three collections, all declared in `source.config.ts` and loaded in
 `lib/source.ts`:
 
 | Collection     | Files                | Route               | Ordered by         |
 | -------------- | -------------------- | ------------------- | ------------------ |
 | `blogPosts`    | `content/writings/`  | `/writings/[slug]`  | frontmatter `date` |
 | `projectPages` | `content/projects/`  | `/projects/[slug]`  | frontmatter `order` |
+| `paperPages`   | `content/papers/`    | `/papers/[slug]`    | frontmatter `date`  |
 
 Things that will bite:
 
@@ -50,7 +51,7 @@ Things that will bite:
   standalone `toFumadocsSource(pages, metas)`. The `.toFumadocsSource()` method
   in Fumadocs' install guide only exists on the `defineDocs` wrapper.
 - ESLint ignores `.source/`; the generated files carry their own `@ts-nocheck`.
-- Project bodies are intentionally optional. Frontmatter alone renders a
+- Project and paper bodies are intentionally optional. Frontmatter alone renders a
   complete page, so a project with no write-up still looks finished.
 - Project `media` (frontmatter) renders under the facts. Image files go in
   `content/projects/media/` and are named by file name only: the component

@@ -1,5 +1,9 @@
 import { siteConfig } from "@/lib/site-config";
-import { getPublishedPosts, getPublishedProjects } from "@/lib/source";
+import {
+  getPublishedPapers,
+  getPublishedPosts,
+  getPublishedProjects,
+} from "@/lib/source";
 
 /*
  * llms.txt — a map of every Markdown mirror on the site, so an agent can find
@@ -13,6 +17,7 @@ export const dynamic = "force-static";
 export function GET() {
   const posts = getPublishedPosts();
   const projects = getPublishedProjects();
+  const papers = getPublishedPapers();
   const base = siteConfig.url;
 
   const lines = [
@@ -33,6 +38,7 @@ export function GET() {
     "",
     `- [Writing index](${base}/writings.md)`,
     `- [Projects index](${base}/projects.md)`,
+    `- [Papers index](${base}/papers.md)`,
     `- [Talks](${base}/talks.md)`,
     "",
     "## Posts",
@@ -49,6 +55,13 @@ export function GET() {
     ...projects.map(
       (project) =>
         `- [${project.data.title}](${base}${project.url}/raw): ${project.data.description} (live: ${project.data.url})`,
+    ),
+    "",
+    "## Papers",
+    "",
+    ...papers.map(
+      (paper) =>
+        `- [${paper.data.title}](${base}${paper.url}/raw): ${paper.data.description ?? ""} (paper: ${paper.data.url})`,
     ),
     "",
     "## Feeds",

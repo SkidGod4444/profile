@@ -20,7 +20,7 @@ bun start
 
 **`lib/site-config.ts`** holds identity, every URL, the "Now" prose and the
 footer. **Long-form content is MDX**: posts in `content/writings/`, projects in
-`content/projects/`. A case study is prose and does not belong in a TypeScript
+`content/projects/`, papers in `content/papers/`. A case study is prose and does not belong in a TypeScript
 file, so the project list is no longer in the config.
 
 Prose that contains inline links is written as arrays of segments so it can stay

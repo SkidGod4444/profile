@@ -256,6 +256,85 @@ export function ProjectSchema({
   );
 }
 
+/**
+ * A paper page is a web page *about* a scholarly article: the article's own
+ * facts sit under `about`, and the page's author is the site owner, so the
+ * paper's authors are never credited with the notes or vice versa.
+ */
+export function PaperSchema({
+  title,
+  description,
+  url,
+  paperUrl,
+  authors,
+  venue,
+  year,
+  date,
+  updated,
+}: {
+  title: string;
+  description?: string;
+  url: string;
+  paperUrl: string;
+  authors: string[];
+  venue?: string;
+  year: string;
+  date: string | Date;
+  updated?: string | Date;
+}) {
+  const absoluteUrl = `${siteConfig.url}${url}`;
+
+  return (
+    <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "@id": absoluteUrl,
+          url: absoluteUrl,
+          name: title,
+          description,
+          datePublished: new Date(date).toISOString(),
+          dateModified: new Date(updated ?? date).toISOString(),
+          inLanguage: "en",
+          author: personRef,
+          isPartOf: websiteRef,
+          about: {
+            "@type": "ScholarlyArticle",
+            name: title,
+            url: paperUrl,
+            sameAs: paperUrl,
+            author: authors.map((name) => ({ "@type": "Person", name })),
+            datePublished: year,
+            publisher: venue ? { "@type": "Organization", name: venue } : undefined,
+          },
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: siteConfig.name,
+              item: siteConfig.url,
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Papers",
+              item: `${siteConfig.url}/papers`,
+            },
+            { "@type": "ListItem", position: 3, name: title },
+          ],
+        }}
+      />
+    </>
+  );
+}
+
 export function EventSchema({
   name,
   description,

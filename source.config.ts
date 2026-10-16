@@ -71,4 +71,28 @@ export const projectPages = defineCollections({
   }),
 });
 
+/*
+ * Papers: research the site owner has read, each with its facts and optional
+ * notes. Same shape as projects — frontmatter alone is a complete page.
+ */
+export const paperPages = defineCollections({
+  type: "doc",
+  dir: "content/papers",
+  schema: pageSchema.extend({
+    /** As written on the paper, in order. */
+    authors: z.array(z.string()).default([]),
+    /** Where it appeared: "arXiv", "NeurIPS 2017", "Science Robotics". */
+    venue: z.string().optional(),
+    year: z.string(),
+    /** The paper's own page: DOI, arXiv abstract or publisher. */
+    url: z.string().url(),
+    pdf: z.string().url().optional(),
+    /** When it was added here; newest first on the index. */
+    date: z.string().date().or(z.date()),
+    /** Last real edit to the notes; feeds dateModified and the sitemap. */
+    updated: z.string().date().or(z.date()).optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+
 export default defineConfig();
