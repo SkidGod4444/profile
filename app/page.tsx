@@ -13,6 +13,7 @@ import { pageMetadata } from "@/lib/seo";
 import { links, siteConfig } from "@/lib/site-config";
 import {
   formatPostDate,
+  getPublishedPapers,
   getPublishedPosts,
   getPublishedProjects,
 } from "@/lib/source";
@@ -68,6 +69,12 @@ export default async function Page() {
   const recentPosts = posts.slice(0, siteConfig.writingsOnHome);
   const projects = getPublishedProjects();
   const formattedStars = compactNumberFormatter.format(starCount);
+  /* /papers stays reachable by URL, but is only advertised once a paper is
+     published — the same rule as "All posts" below. */
+  const hasPapers = getPublishedPapers().length > 0;
+  const nav = siteConfig.nav.filter(
+    (item) => item.href !== "/papers" || hasPapers,
+  );
 
   return (
     <main className="profile" aria-labelledby="page-title">
@@ -77,14 +84,14 @@ export default async function Page() {
 
       <div className="profile__shell">
         <nav className="site-nav" aria-label="Sections">
-          {siteConfig.nav.map((item) => (
+          {nav.map((item) => (
             <Link href={item.href} key={item.href}>
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <header className="profile__header">
+        <header className="profile__header profile__header--hero">
           <div className="profile__who">
             <Avatar className="profile__avatar">
               <AvatarImage src={siteConfig.avatar.src} alt="" />
