@@ -43,6 +43,9 @@ export const links = {
   whatsapp: "https://ref.saidev.codes/wp",
   sapient: "https://sapient.openhorizon.so",
   openHorizon: "https://openhorizon.so",
+  botcortex: "https://openhorizon.so/products/botcortex",
+  /* OpenHorizon's latest paper, the one the "Now" section quotes. */
+  ohPaper: "https://openhorizon.so/research/async-chunking-edge-cpus",
   x0gpt: "https://x0-gpt.devwtf.in",
   prexo: "https://prexoai.xyz",
   indexflow: "https://indexflow.site",
@@ -61,7 +64,7 @@ export const siteConfig = {
 
   /** Used for the page title suffix, meta description and OG tags. */
   description:
-    "Software engineer and OSS builder from New Delhi. I founded OpenHorizon Labs, working on physical AI and robotics, and ship open source as SkidGod.",
+    "Software engineer from New Delhi. I founded OpenHorizon Labs, a robotics research company, and I ship open source as SkidGod.",
 
   /*
    * Search engines ignore the keywords meta tag, but LLM crawlers and social
@@ -165,37 +168,63 @@ export const siteConfig = {
    * labels that orient a reader, not summaries of what follows.
    */
   sections: {
-    now: "What I am doing at the moment",
+    now: "What I'm doing right now",
     past: "How I got here",
     writing: "Essays and technical write-ups",
-    projects: "Things I have built",
+    projects: "Things I've built",
   },
 
   /** How many recent posts the home page lists before linking to /writings. */
   writingsOnHome: 3,
 
-  /** The "Now" section — one array per paragraph. */
+  /*
+   * The "Now" section — one array per paragraph. Written in the rhythm the
+   * refine-writing skill describes: mostly one sentence per paragraph, short
+   * lines, plain words. Every fact here comes from Saidev's own copy and
+   * posts, or from what openhorizon.so says publicly — keep the two in step.
+   */
   now: [
     [
       "I founded ",
       { text: "OpenHorizon Labs", href: links.openHorizon },
-      ". We are trying to build something in physical AI and robotics. What exactly, we have not figured out yet.",
+      ". It's a robotics research company.",
+    ],
+    [
+      "We study how robots learn from people, remember their mistakes and act safely in the real world.",
+    ],
+    ["Then we turn that work into software that runs on your own hardware."],
+    [
+      { text: "BotCortex", href: links.botcortex },
+      " lets you teach a robot by typing.",
+    ],
+    [
+      "The skill runs on the robot at 20 Hz. Zero model calls. Inside bounds the model can't loosen.",
     ],
     [
       { text: "Sapient", href: links.sapient },
-      " came out of that — a small side project, written in Rust, that makes hardware think, see, listen and speak. That one you can actually use today.",
+      " started as a side project. I wanted a robot that could hear me, think and talk back, with no uplink.",
+    ],
+    ["So I wrote my own inference engine. In Rust."],
+    [
+      "Now it's one 8 MB download. 27.7 tokens a second on a Jetson AGX Thor, and it still runs on a Raspberry Pi 5.",
+    ],
+    [
+      "Our latest ",
+      { text: "paper", href: links.ohPaper },
+      " found that on a Raspberry Pi 5, fewer stalls didn't mean more completed tasks.",
     ],
     [
       "I ship open source as ",
       { text: "SkidGod", href: links.github },
-      ". The largest of those projects, ",
+      ". The biggest project, ",
       { text: "x0-GPT", href: `https://github.com/SkidGod4444/x0-GPT` },
       ", has ",
       { stars: true },
-      " stars on GitHub. Most of my attention goes to machine learning and robotics.",
+      " stars on GitHub.",
     ],
+    ["I also freelance, and I'm taking on new work."],
     [
-      "I also freelance, and I am taking on new work. If you need a full-stack SaaS — web, app, AI, or all three — I can build the whole thing. ",
+      "Need a full-stack SaaS? Web, app, AI, or all three. I can build the whole thing. ",
       { text: "Let's talk", href: links.whatsapp },
       ".",
     ],
@@ -209,44 +238,51 @@ export const siteConfig = {
    * company described in `now`. Dates and titles come from his LinkedIn.
    */
   past: [
+    ["I go by SkidGod because I was one."],
     [
-      "I go by SkidGod because I was one. A skid is someone who runs on other people's code, and at fourteen that was me — lifting Discord bots and shipping them as my own. It started as an insult. I kept it.",
+      "A skid is someone who runs on other people's code. At fourteen, that was me. Lifting Discord bots and shipping them as my own.",
     ],
+    ["It started as an insult. I kept it."],
+    ["What I wanted was the founder tag in those servers."],
+    ["So I learned discord.py and built my own bot instead."],
     [
-      "What I actually wanted was the founder tag in those servers. So I learned discord.py and built my own bot instead. That is where my tech career started, and I stayed because it turned out I found it genuinely interesting.",
+      "That's where my tech career started. I stayed because it turned out I found it genuinely interesting.",
     ],
     [
       "In 2024 I was at ",
       { text: "Ellenox", href: links.ellenox },
-      ", running hackathons and tech support and managing a Discord community of 2,000+ members. The same year I spent nights and weekends in ",
+      ", running hackathons and tech support and managing a Discord community of 2,000+ members.",
+    ],
+    [
+      "Same year, I spent my nights and weekends in ",
       { text: "buildspace", href: links.buildspace },
       "'s S5 cohort.",
     ],
     [
       "In January 2025 I joined ",
       { text: "IIT Madras", href: links.iitm },
-      " as technical lead. Nine months of product development and strategy, working with the engineering team and a professor to build the MVP.",
+      " as technical lead. Nine months of product and strategy, building the MVP with the engineering team and a professor.",
     ],
     [
-      "Then two months at ",
+      "After that, two months at ",
       { text: "Bharat Space Education Research Centre", href: links.bserc },
-      " as a def-space tech intern, on aircraft design and robotics.",
+      " as a def-space tech intern. Aircraft design and robotics.",
     ],
-    ["Which is the short version of how I ended up starting my own thing."],
+    ["Then I started my own thing."],
   ] satisfies Segment[][],
 
   /** The closing sentence in the footer. */
   footer: [
-    "My code is on ",
+    "My code's on ",
     { text: "GitHub", href: links.githubShort },
-    ". I am on ",
+    ". I'm on ",
     { text: "X", href: links.x },
     " and ",
     { text: "LinkedIn", href: links.linkedin },
-    ". ",
+    ". Want to talk? ",
     { text: "WhatsApp", href: links.whatsapp },
-    " me if you want to talk, or ",
+    " me, or ",
     { text: "email", href: links.email },
-    " if that is easier.",
+    " if that's easier.",
   ] satisfies Segment[],
 } as const;

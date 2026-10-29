@@ -29,7 +29,7 @@ export default function ProjectsPage() {
         <header className="profile__header">
           <div className="profile__identity">
             <h1 id="projects-title">Projects</h1>
-            <p>Things I have built.</p>
+            <p>Things I&rsquo;ve built.</p>
           </div>
         </header>
 

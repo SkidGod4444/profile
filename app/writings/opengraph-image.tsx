@@ -9,7 +9,7 @@ export default async function Image() {
   return renderOgImage({
     eyebrow: siteConfig.name,
     title: "Writing",
-    subtitle: "Blog posts and technical write-ups",
+    subtitle: "Essays and technical write-ups",
     footerRight: siteConfig.role,
   });
 }

@@ -12,7 +12,7 @@ The tools for that mostly want a Python environment, a container, or CUDA. A Pi 
 
 So on 24 May 2026 I started writing my own engine. In Rust.
 
-This is what the next five months looked like. The parts that worked, and the parts I would rather not tell you.
+This is what the next five months looked like. The parts that worked, and the parts I'd rather not tell you.
 
 ## Day one
 
@@ -20,11 +20,13 @@ The first commit and the first release were the same day.
 
 Install script. Checksums. Cross-compiling for ARM. A release pipeline that built for macOS, Linux and Windows before the thing could do anything useful.
 
-It could not run a model yet.
+It couldn't run a model yet.
 
-Real CPU inference landed the next day, in v0.1.2. The first chat output was not coherent. The fix for that is also from day two.
+Real CPU inference landed the next day, in v0.1.2.
 
-I am telling you this because every polished project you look up to started as a binary that printed garbage.
+The first chat output wasn't coherent. The fix for that is also from day two.
+
+I'm telling you this because every polished project you look up to started as a binary that printed garbage.
 
 ## Day six
 
@@ -54,9 +56,11 @@ That was the first time "no CUDA" was true on Nvidia hardware and not just a lin
 
 Until July, Llama-3.2-1B ran at 1.3 tokens a second on a Raspberry Pi 5.
 
-That is not a chat. That is a typewriter.
+That's not a chat. That's a typewriter.
 
-Then an audit found the engine dequantising the entire embedding table on every generated token. Llama-1B ties its embedding to a 128k-token vocabulary. About 0.8 GB of dequantisation per token, to read one row.
+Then an audit found the engine dequantising the entire embedding table on every generated token.
+
+Llama-1B ties its embedding to a 128k-token vocabulary. About 0.8 GB of dequantisation per token, to read one row.
 
 Embedding lookup became row-wise.
 
@@ -64,7 +68,9 @@ Llama-1B went from 1.3 to 8.3 tokens a second on the same board. The 3B went fro
 
 That code path had been there since quantised loading landed on 29 May. Nothing flagged it, because a slow Pi looks normal.
 
-If your thing is slow, do not assume it is the hardware. Profile it. I lost five weeks of Pi performance to it.
+I lost five weeks of Pi performance to it.
+
+If your thing is slow, don't assume it's the hardware. Profile it.
 
 ## Make the engine watch the thermometer
 
@@ -78,15 +84,17 @@ To test it I forced the threshold inside the board's normal plateau, at 72 °C.
 
 Decode went from 8.70 to 8.23 tokens a second within seconds, and held there for the rest of a six-minute soak.
 
-Five percent slower for a quarter of the cores. Decode on a Pi is bound by memory latency, not compute, so you pay in package power, not tokens.
+Five percent slower for a quarter of the cores.
+
+Decode on a Pi is bound by memory latency, not compute, so you pay in package power, not tokens.
 
 The same governor ships in the phone SDKs now. The engine sheds threads as the phone heats.
 
 ## The voice loop that interrupted itself
 
-Here is the part that was for the robot.
+Here's the part that was for the robot.
 
-`sapient converse --speak`. Speech is transcribed while you are still talking. The reply starts speaking after its first clause. You can cut it off mid-sentence.
+`sapient converse --speak`. Speech is transcribed while you're still talking. The reply starts speaking after its first clause. You can cut it off mid-sentence.
 
 Perceived latency went from about 4.4 seconds to about 2.4 on a Mac.
 
@@ -94,13 +102,15 @@ The first time it ran on a real microphone, the replies interrupted themselves.
 
 The speaker played the reply. The microphone heard it. The barge-in detector decided a human had started talking, and stopped the reply. Over and over.
 
-The fix: the speaker tracks its own playback envelope. Anything that matches it is the machine. Anything that does not is you.
+The fix: the speaker tracks its own playback envelope. Anything that matches it's the machine. Anything that doesn't is you.
 
-Now the honest number. On a Pi 5, one turn with a 0.5B model is 2.96 seconds of transcription, 3.5 seconds of language model and 5.4 seconds of speech synthesis, run in sequence.
+Now the honest number.
 
-Streaming hides most of that, because speech starts at the first clause. It does not hide all of it.
+On a Pi 5, one turn with a 0.5B model is 2.96 seconds of transcription, 3.5 seconds of language model and 5.4 seconds of speech synthesis, run in sequence.
 
-Sub-second voice on a Pi is the thing I am still working on.
+Streaming hides most of that, because speech starts at the first clause. It doesn't hide all of it.
+
+Sub-second voice on a Pi is the thing I'm still working on.
 
 ## Bugs I want you to know about
 
@@ -114,7 +124,9 @@ The download bar crawled to 8% and jumped to done, because it counted every quan
 
 A user reported a 4.8 GB model holding twice its size in memory on the default build. They were right. 3.4 times while loading.
 
-The README said "zero quality loss". I had never measured it. When I built a perplexity gate that scores exactly what llama.cpp scores, Sapient came out 0.1 to 0.4% worse on the same files.
+The README said "zero quality loss". I had never measured it.
+
+When I built a perplexity gate that scores exactly what llama.cpp scores, Sapient came out 0.1 to 0.4% worse on the same files.
 
 My first set of quality numbers was wrong too. Two protocol bugs.
 
@@ -122,16 +134,20 @@ Every one of these is in the changelog. Negative results stay in.
 
 ## So, why not llama.cpp?
 
-You are going to ask.
+You're going to ask.
 
-It is faster. On an Apple M4 with Metal, Llama-3.2-1B decodes at 90.6 tokens a second in Sapient and 111.3 in llama.cpp. Same file, same session. I publish the table.
+It's faster.
+
+On an Apple M4 with Metal, Llama-3.2-1B decodes at 90.6 tokens a second in Sapient and 111.3 in llama.cpp. Same file, same session. I publish the table.
 
 What Sapient is: chat, speech and vision in one binary, an 8 MB download, that installs with one command and runs on the Pi, the laptop and the Jetson from the same model name.
 
 No daemon. No runtime. No container.
 
-I cannot give you a grand reason for Rust. I can tell you what one binary bought me. A thing I can copy onto a robot and trust to start.
+I can't give you a grand reason for Rust.
+
+I can tell you what one binary bought me. A thing I can copy onto a robot and trust to start.
 
 [Sapient](https://sapient.openhorizon.so) is 583 commits and 52 releases in, as of today.
 
-It is not the fastest. It is the one that runs where you are.
+It's not the fastest. It's the one that runs where you are.

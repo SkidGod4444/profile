@@ -40,7 +40,7 @@ export function GET() {
   <channel>
     <title>Writing — ${escapeXml(siteConfig.name)}</title>
     <link>${siteConfig.url}/writings</link>
-    <description>${escapeXml(`Blog posts and technical write-ups by ${siteConfig.name}.`)}</description>
+    <description>${escapeXml(`Essays and technical write-ups by ${siteConfig.name}.`)}</description>
     <language>en</language>
     <lastBuildDate>${updated.toUTCString()}</lastBuildDate>
     <atom:link href="${siteConfig.url}/feed.xml" rel="self" type="application/rss+xml" />

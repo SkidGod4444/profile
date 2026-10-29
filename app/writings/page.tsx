@@ -9,7 +9,7 @@ import { formatPostDate, getPublishedPosts } from "@/lib/source";
 
 export const metadata: Metadata = pageMetadata({
   title: "Writing",
-  description: `Blog posts and technical write-ups by ${siteConfig.name}.`,
+  description: `Essays and technical write-ups by ${siteConfig.name}.`,
   path: "/writings",
 });
 
@@ -30,7 +30,7 @@ export default function BlogIndexPage() {
         <header className="profile__header">
           <div className="profile__identity">
             <h1 id="writing-title">Writing</h1>
-            <p>Blog posts and technical write-ups.</p>
+            <p>Essays and technical write-ups.</p>
           </div>
         </header>
 

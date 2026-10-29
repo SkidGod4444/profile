@@ -119,7 +119,7 @@ export function BlogSchema() {
         "@id": blogId,
         url: `${siteConfig.url}/writings`,
         name: `Writing — ${siteConfig.name}`,
-        description: `Blog posts and technical write-ups by ${siteConfig.name}.`,
+        description: `Essays and technical write-ups by ${siteConfig.name}.`,
         inLanguage: "en",
         author: personRef,
         publisher: personRef,
